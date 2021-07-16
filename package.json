@@ -9,8 +9,8 @@
         "electron:serve": "vue-cli-service electron:serve",
         "postinstall": "electron-builder install-app-deps",
         "postuninstall": "electron-builder install-app-deps",
-        "lint": "npx prettier --check .",
-        "lint-write": "npx prettier --write ."
+        "lint": "npx prettier --check ./src",
+        "lint-write": "npx prettier --write ./src"
     },
     "main": "background.js",
     "dependencies": {
