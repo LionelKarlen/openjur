@@ -2,9 +2,9 @@
 
 Open implementation of the winjur timesheet system using vuejs, sqlite, and electron. 
 
-![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=for-the-badge)
-![](https://img.shields.io/github/issues/LionelKarlen/openjur?style=for-the-badge)
-![](https://img.shields.io/badge/Electron-%5E13.0.0-brightgreen?style=for-the-badge)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=for-the-badge)](https://www.contributor-covenant.org/)
+[![](https://img.shields.io/github/issues/LionelKarlen/openjur?style=for-the-badge)](https://github.com/LionelKarlen/openjur/issues)
+[![](https://img.shields.io/badge/Electron-%5E13.0.0-brightgreen?style=for-the-badge)](https://github.com/electron/electron)
 ## Getting Started
 
 These instructions will give you a copy of the project up and running on
