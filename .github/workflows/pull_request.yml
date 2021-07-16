@@ -12,9 +12,5 @@ jobs:
         run: yarn global add @vue/cli
       - name: Lint
         run: yarn lint
-  build:
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
       - name: Build
         run: yarn electron:build
