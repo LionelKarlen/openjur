@@ -16,6 +16,7 @@ protocol.registerSchemesAsPrivileged([
     },
 ]);
 
+console.log('STARTING DB');
 var knex = require('knex')({
     client: 'sqlite3',
     connection: {
@@ -39,6 +40,8 @@ async function createWindow() {
         },
     });
 
+    win.setMenuBarVisibility(false);
+
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
         await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
@@ -58,14 +61,36 @@ async function createWindow() {
     }
 }
 
-ipcMain.on('mainWindowLoaded', function () {
-    console.log('STARTING DB');
+ipcMain.on('getClients', function () {
     let clients = knex.select('*').from('Clients');
     clients.then(function (data) {
-        win.webContents.send('clientSent', data);
+        win.webContents.send('clientsSent', data);
     });
 });
 
+ipcMain.on('getTimesByID', function (event, data) {
+    let times = knex
+        .select('*')
+        .from('Times')
+        .where({
+            ClientID: `${data}`,
+        });
+    times.then(function (data) {
+        win.webContents.send('timesSent', data);
+    });
+});
+
+ipcMain.on('getClientByID', function (event, data) {
+    let times = knex
+        .select('*')
+        .from('Clients')
+        .where({
+            ID: `${data}`,
+        });
+    times.then(function (data) {
+        win.webContents.send('clientSent', data);
+    });
+});
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar
