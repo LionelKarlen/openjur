@@ -97,8 +97,8 @@ ipcMain.handle('getUserByID', async (event, data) => {
 });
 
 ipcMain.handle('getTimes', async (event, data) => {
-	let times = await knex.select('*').from('Times');
-	return times;
+    let times = await knex.select('*').from('Times');
+    return times;
 });
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
