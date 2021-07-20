@@ -23,7 +23,7 @@
 const { ipcRenderer } = require('electron');
 export default {
     name: 'TimesheetTable',
-    props: ['invoke', 'arg', 'alltimes'],
+    props: ['invoke', 'arg', 'alltimes', 'user'],
     data() {
         return {
             entries: [],
@@ -37,6 +37,11 @@ export default {
                     text: 'Text',
                     sortable: true,
                     value: 'Text',
+                },
+                {
+                    text: !this.user ? 'User' : 'Client',
+                    sortable: true,
+                    value: !this.user ? 'User' : 'Client',
                 },
                 {
                     text: 'Hours',

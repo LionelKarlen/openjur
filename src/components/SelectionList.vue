@@ -1,21 +1,20 @@
 <template>
     <div>
         <v-autocomplete
-            v-model="client"
-            :items="clients"
+            v-model="selected"
+            :items="entries"
             item-text="Name"
             item-value="ID"
             @change="onUpdate()"
         >
-            <!-- router.push(`client/${item.ID}`) -->
         </v-autocomplete>
         <v-list-item
-            v-for="client in clients"
-            :key="client.ID"
-            :to="/client/ + client.ID"
+            v-for="entry in entries"
+            :key="entry.ID"
+            :to="`${baseroute}/${entry.ID}`"
         >
             <v-list-item-content>
-                {{ client.Name }}
+                {{ entry.Name }}
             </v-list-item-content>
         </v-list-item>
     </div>
@@ -24,24 +23,25 @@
 <script>
 const { ipcRenderer } = require('electron');
 export default {
-    name: 'Clients',
+    name: 'SelectionList',
+    props: ['invoke', 'baseroute'],
     data() {
         return {
-            clients: [],
-            client: {},
+            entries: [],
+            selected: {},
         };
     },
     methods: {
         onUpdate() {
-            console.log(this.client);
-            this.$router.push(`client/${this.client}`);
+            console.log(this.selected);
+            this.$router.push(`${this.baseroute}/${this.selected}`);
         },
     },
     mounted() {
         console.log(this.$route);
-        ipcRenderer.invoke('getClients').then((data) => {
+        ipcRenderer.invoke(this.invoke).then((data) => {
             console.log(data);
-            this.clients = data;
+            this.entries = data;
         });
     },
 };
