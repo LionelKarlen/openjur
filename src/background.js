@@ -16,6 +16,7 @@ protocol.registerSchemesAsPrivileged([
     },
 ]);
 
+console.log('STARTING DB');
 var knex = require('knex')({
     client: 'sqlite3',
     connection: {
@@ -39,6 +40,8 @@ async function createWindow() {
         },
     });
 
+    win.setMenuBarVisibility(false);
+
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
         await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
@@ -58,14 +61,60 @@ async function createWindow() {
     }
 }
 
-ipcMain.on('mainWindowLoaded', function () {
-    console.log('STARTING DB');
-    let clients = knex.select('*').from('Clients');
-    clients.then(function (data) {
-        win.webContents.send('clientSent', data);
-    });
+ipcMain.handle('getClients', async () => {
+    let clients = await knex.select('*').from('Clients');
+    return clients;
 });
 
+ipcMain.handle('getUsers', async () => {
+    let users = await knex.select('*').from('Users');
+    return users;
+});
+
+ipcMain.handle('getTimesByClientID', async (event, data) => {
+    let times = await knex
+        .select('*')
+        .from('Times')
+        .where({
+            ClientID: `${data}`,
+        });
+    return times;
+});
+
+ipcMain.handle('getTimesByUserID', async (event, data) => {
+    let times = await knex
+        .select('*')
+        .from('Times')
+        .where({
+            UserID: `${data}`,
+        });
+    return times;
+});
+
+ipcMain.handle('getClientByID', async (event, data) => {
+    let client = await knex
+        .select('*')
+        .from('Clients')
+        .where({
+            ID: `${data}`,
+        });
+    return client[0];
+});
+
+ipcMain.handle('getUserByID', async (event, data) => {
+    let users = await knex
+        .select('*')
+        .from('Users')
+        .where({
+            ID: `${data}`,
+        });
+    return users[0];
+});
+
+ipcMain.handle('getTimes', async (event, data) => {
+    let times = await knex.select('*').from('Times');
+    return times;
+});
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar
