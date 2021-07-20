@@ -95,6 +95,11 @@ ipcMain.handle('getUserByID', async (event, data) => {
         });
     return users[0];
 });
+
+ipcMain.handle('getTimes', async (event, data) => {
+	let times = await knex.select('*').from('Times');
+	return times;
+});
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar

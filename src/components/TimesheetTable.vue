@@ -1,17 +1,20 @@
 <template>
-    <v-data-table
-        :headers="this.headers"
-        :items="this.entries"
-        hide-default-footer
-        :items-per-page="-1"
-    >
-        <template v-slot:[`item.actions`]="{ item }">
-            <v-icon small class="mr-2" @click="document.alert(item)">
-                mdi-pencil
-            </v-icon>
-            <v-icon small> mdi-delete </v-icon>
-        </template>
-    </v-data-table>
+    <div>
+        <v-data-table
+            :headers="this.headers"
+            :items="this.entries"
+            hide-default-footer
+            :items-per-page="-1"
+        >
+            <template v-slot:[`item.actions`]="{ item }">
+                <v-icon small class="mr-2" @click="document.alert(item)">
+                    mdi-pencil
+                </v-icon>
+                <v-icon small> mdi-delete </v-icon>
+            </template>
+        </v-data-table>
+        <v-btn depressed color="primary">Add Entry</v-btn>
+    </div>
 </template>
 
 <script>

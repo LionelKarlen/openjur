@@ -4,6 +4,7 @@ import VueRouter from 'vue-router';
 import Home from '../views/Home.vue';
 import Clients from '../views/Clients.vue';
 import Client from '../views/Client.vue';
+import Times from '../views/Times.vue'
 
 Vue.use(VueRouter);
 
@@ -22,6 +23,11 @@ const routes = [
         path: '/client/:id',
         name: 'Client',
         component: Client,
+    },
+    {
+        path: '/times',
+        name: 'Times',
+        component: Times,
     },
 ];
 

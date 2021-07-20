@@ -13,6 +13,7 @@
                 <v-tabs align-with-title>
                     <v-tab to="/">Home</v-tab>
                     <v-tab to="/clients">Clients</v-tab>
+                    <v-tab to="/times">Times</v-tab>
                 </v-tabs>
             </template>
         </v-app-bar>
