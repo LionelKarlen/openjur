@@ -1,5 +1,5 @@
 <template>
-    <div id="Client" class="pa-3">
+    <div id="Client">
         <div id="client-meta-section">
             <h1>{{ client.Name }}</h1>
             <h3>{{ client.Address }}</h3>

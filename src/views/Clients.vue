@@ -1,5 +1,14 @@
 <template>
     <div>
+        <v-autocomplete
+            v-model="client"
+            :items="clients"
+            item-text="Name"
+            item-value="ID"
+            @change="onUpdate()"
+        >
+            <!-- router.push(`client/${item.ID}`) -->
+        </v-autocomplete>
         <v-list-item
             v-for="client in clients"
             :key="client.ID"
@@ -19,7 +28,14 @@ export default {
     data() {
         return {
             clients: [],
+            client: {},
         };
+    },
+    methods: {
+        onUpdate() {
+            console.log(this.client);
+            this.$router.push(`client/${this.client}`);
+        },
     },
     mounted() {
         console.log(this.$route);

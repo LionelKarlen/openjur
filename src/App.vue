@@ -17,7 +17,9 @@
             </template>
         </v-app-bar>
         <v-main>
-            <router-view />
+            <div class="pa-5">
+                <router-view />
+            </div>
         </v-main>
     </v-app>
 </template>
