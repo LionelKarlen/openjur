@@ -1,6 +1,6 @@
 <template>
     <div>
-        <timesheet-table invoke="getTimes" />
+        <timesheet-table invoke="getTimes" :alltimes="true" />
     </div>
 </template>
 

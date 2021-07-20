@@ -1,7 +1,9 @@
 <template>
     <div>
         <v-data-table
-            :headers="this.headers"
+            :headers="
+                this.alltimes != true ? this.headers : this.alltimesHeaders
+            "
             :items="this.entries"
             hide-default-footer
             :items-per-page="-1"
@@ -21,7 +23,7 @@
 const { ipcRenderer } = require('electron');
 export default {
     name: 'TimesheetTable',
-    props: ['invoke', 'arg'],
+    props: ['invoke', 'arg', 'alltimes'],
     data() {
         return {
             entries: [],
@@ -48,6 +50,39 @@ export default {
                 },
                 { text: 'Actions', value: 'actions', sortable: false },
             ],
+            alltimesHeaders: [
+                {
+                    text: 'Date',
+                    sortable: true,
+                    value: 'Date',
+                },
+                {
+                    text: 'Text',
+                    sortable: true,
+                    value: 'Text',
+                },
+                {
+                    text: 'Client',
+                    sortable: true,
+                    value: 'Client',
+                },
+                {
+                    text: 'User',
+                    sortable: true,
+                    value: 'User',
+                },
+                {
+                    text: 'Hours',
+                    sortable: true,
+                    value: 'Hours',
+                },
+                {
+                    text: 'Amount',
+                    sortable: true,
+                    value: 'Amount',
+                },
+                { text: 'Actions', value: 'actions', sortable: false },
+            ],
         };
     },
     async mounted() {
@@ -55,11 +90,17 @@ export default {
             console.log(data);
             let entries = data;
             for (let i = 0; i < entries.length; i++) {
-                var e = await ipcRenderer.invoke(
+                var user = await ipcRenderer.invoke(
                     'getUserByID',
                     entries[i].UserID
                 );
-                entries[i].Amount = entries[i].Hours * e.Amount;
+                var client = await ipcRenderer.invoke(
+                    'getClientByID',
+                    entries[i].ClientID
+                );
+                entries[i].Amount = entries[i].Hours * user.Amount;
+                entries[i].User = user.Name;
+                entries[i].Client = client.Name;
             }
             this.entries = entries;
         });
