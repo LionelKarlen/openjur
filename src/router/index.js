@@ -3,7 +3,7 @@ import VueRouter from 'vue-router';
 
 import Home from '../views/Home.vue';
 import Client from '../views/Client.vue';
-import Times from '../views/Times.vue';
+import User from '../views/User.vue';
 
 import SelectionList from '../components/SelectionList.vue';
 import TimesheetTable from '../components/TimesheetTable.vue';
@@ -34,11 +34,8 @@ const routes = [
     },
     {
         path: '/user/:id',
-        component: TimesheetTable,
-        props: (route) => ({
-            invoke: 'getTimesByUserID',
-            arg: route.params.id,
-        }),
+        name: 'User',
+        component: User,
     },
     {
         path: '/client/:id',
@@ -47,8 +44,11 @@ const routes = [
     },
     {
         path: '/times',
-        name: 'Times',
-        component: Times,
+        component: TimesheetTable,
+        props: {
+            invoke: 'getTimes',
+            alltimes: true,
+        },
     },
 ];
 
