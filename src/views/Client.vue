@@ -4,7 +4,10 @@
             <h1>{{ client.Name }}</h1>
             <h3>{{ client.Address }}</h3>
         </div>
-        <timesheet-table invoke="getTimesByID" :arg="this.$route.params.id" />
+        <timesheet-table
+            invoke="getTimesByClientID"
+            :arg="this.$route.params.id"
+        />
         <v-btn depressed color="primary"> Export to File </v-btn>
     </div>
 </template>

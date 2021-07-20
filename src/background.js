@@ -66,12 +66,27 @@ ipcMain.handle('getClients', async () => {
     return clients;
 });
 
-ipcMain.handle('getTimesByID', async (event, data) => {
+ipcMain.handle('getUsers', async () => {
+    let users = await knex.select('*').from('Users');
+    return users;
+});
+
+ipcMain.handle('getTimesByClientID', async (event, data) => {
     let times = await knex
         .select('*')
         .from('Times')
         .where({
             ClientID: `${data}`,
+        });
+    return times;
+});
+
+ipcMain.handle('getTimesByUserID', async (event, data) => {
+    let times = await knex
+        .select('*')
+        .from('Times')
+        .where({
+            UserID: `${data}`,
         });
     return times;
 });

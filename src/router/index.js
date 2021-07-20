@@ -2,9 +2,11 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 
 import Home from '../views/Home.vue';
-import Clients from '../views/Clients.vue';
 import Client from '../views/Client.vue';
 import Times from '../views/Times.vue';
+
+import SelectionList from '../components/SelectionList.vue';
+import TimesheetTable from '../components/TimesheetTable.vue';
 
 Vue.use(VueRouter);
 
@@ -16,8 +18,27 @@ const routes = [
     },
     {
         path: '/clients',
-        name: 'Clients',
-        component: Clients,
+        component: SelectionList,
+        props: {
+            baseroute: '/client',
+            invoke: 'getClients',
+        },
+    },
+    {
+        path: '/users',
+        component: SelectionList,
+        props: {
+            baseroute: '/user',
+            invoke: 'getUsers',
+        },
+    },
+    {
+        path: '/user/:id',
+        component: TimesheetTable,
+        props: (route) => ({
+            invoke: 'getTimesByUserID',
+            arg: route.params.id,
+        }),
     },
     {
         path: '/client/:id',
