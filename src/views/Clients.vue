@@ -23,14 +23,10 @@ export default {
     },
     mounted() {
         console.log(this.$route);
-        ipcRenderer.send('getClients');
-        ipcRenderer.on('clientsSent', (event, data) => {
+        ipcRenderer.invoke('getClients').then((data) => {
             console.log(data);
             this.clients = data;
         });
-    },
-    updated() {
-        ipcRenderer.removeAllListeners();
     },
 };
 </script>

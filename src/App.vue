@@ -27,11 +27,13 @@ const { ipcRenderer } = require('electron');
 export default {
     name: 'App',
 
-    data: () => ({
-        //
-    }),
-    mounted() {
-        ipcRenderer.send('mainWindowLoaded');
-    },
+    data: () => ({}),
+    mounted() {},
 };
 </script>
+
+<style>
+body::-webkit-scrollbar {
+    width: 0;
+}
+</style>

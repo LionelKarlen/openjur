@@ -41,35 +41,37 @@ export default {
                     value: 'Text',
                 },
                 {
-                    text: 'UserID',
-                    sortable: true,
-                    value: 'UserID',
-                },
-                {
                     text: 'Hours',
                     sortable: true,
                     value: 'Hours',
+                },
+                {
+                    text: 'Amount',
+                    sortable: true,
+                    value: 'Amount',
                 },
                 { text: 'Actions', value: 'actions', sortable: false },
             ],
         };
     },
-    mounted() {
+    async mounted() {
         var id = this.$route.params.id;
-        ipcRenderer.send('getTimesByID', id);
-        ipcRenderer.send('getClientByID', id);
-
-        ipcRenderer.on('timesSent', (event, data) => {
+        ipcRenderer.invoke('getTimesByID', id).then(async (data) => {
             console.log(data);
-            this.entries = data;
+            let entries = data;
+            for (let i = 0; i < entries.length; i++) {
+                var e = await ipcRenderer.invoke(
+                    'getUserByID',
+                    entries[i].UserID
+                );
+                entries[i].Amount = entries[i].Hours * e.Amount;
+            }
+            this.entries = entries;
         });
-        ipcRenderer.on('clientSent', (event, data) => {
+        ipcRenderer.invoke('getClientByID', id).then((data) => {
             console.log(data);
-            this.client = data[0];
+            this.client = data;
         });
-    },
-    updated() {
-        ipcRenderer.removeAllListeners();
     },
 };
 </script>

@@ -61,35 +61,39 @@ async function createWindow() {
     }
 }
 
-ipcMain.on('getClients', function () {
-    let clients = knex.select('*').from('Clients');
-    clients.then(function (data) {
-        win.webContents.send('clientsSent', data);
-    });
+ipcMain.handle('getClients', async () => {
+    let clients = await knex.select('*').from('Clients');
+    return clients;
 });
 
-ipcMain.on('getTimesByID', function (event, data) {
-    let times = knex
+ipcMain.handle('getTimesByID', async (event, data) => {
+    let times = await knex
         .select('*')
         .from('Times')
         .where({
             ClientID: `${data}`,
         });
-    times.then(function (data) {
-        win.webContents.send('timesSent', data);
-    });
+    return times;
 });
 
-ipcMain.on('getClientByID', function (event, data) {
-    let times = knex
+ipcMain.handle('getClientByID', async (event, data) => {
+    let client = await knex
         .select('*')
         .from('Clients')
         .where({
             ID: `${data}`,
         });
-    times.then(function (data) {
-        win.webContents.send('clientSent', data);
-    });
+    return client[0];
+});
+
+ipcMain.handle('getUserByID', async (event, data) => {
+    let users = await knex
+        .select('*')
+        .from('Users')
+        .where({
+            ID: `${data}`,
+        });
+    return users[0];
 });
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
