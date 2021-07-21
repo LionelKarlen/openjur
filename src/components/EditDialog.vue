@@ -48,6 +48,7 @@
 </template>
 
 <script>
+const { ipcRenderer } = require('electron');
 export default {
     name: 'EditDialog',
     props: ['dialog', 'editedItem', 'isEdit'],
@@ -55,9 +56,21 @@ export default {
         close() {
             this.$emit('updateDialogStatus', false);
         },
-        save() {
-			// TOOD: Update DB
+        async save() {
 			console.log(this.editedItem);
+			let obj = {
+				Date: this.editedItem.Date,
+				ClientID: this.editedItem.ClientID,
+				UserID: this.editedItem.UserID,
+				Text: this.editedItem.Text,
+				Hours: this.editedItem.Hours,
+				ID: this.editedItem.ID
+			}
+			if(this.isEdit) {
+			await ipcRenderer.invoke('setTimeByID', obj);
+			} else {
+			await ipcRenderer.invoke('addTime', obj);
+			}
             this.$emit('updateDialogStatus', false);
         },
     },

@@ -61,6 +61,14 @@ async function createWindow() {
     }
 }
 
+ipcMain.handle('setTimeByID', async (event, data) => {
+	await knex('Times').where({ID:`${data.ID}`}).update(data);
+});
+
+ipcMain.handle('addTime', async (event, data) => {
+	await knex('Times').insert(data);
+});
+
 ipcMain.handle('getClients', async () => {
     let clients = await knex.select('*').from('Clients');
     return clients;
