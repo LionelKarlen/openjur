@@ -9,23 +9,27 @@
             :items-per-page="-1"
         >
             <template v-slot:[`item.actions`]="{ item }">
-                <v-icon small class="mr-2" @click="document.alert(item)">
+                <v-icon small class="mr-2" @click="alert(item)">
                     mdi-pencil
                 </v-icon>
                 <v-icon small> mdi-delete </v-icon>
             </template>
         </v-data-table>
-        <v-btn depressed color="primary">Add Entry</v-btn>
+        <v-btn depressed color="primary" @click.stop="dialog=true">Add Entry</v-btn>
+		<edit-dialog :dialog="dialog" @updateDialogStatus="updateDialogStatus"/>
     </div>
 </template>
 
 <script>
+import EditDialog from './EditDialog.vue';
 const { ipcRenderer } = require('electron');
 export default {
+    components: { EditDialog },
     name: 'TimesheetTable',
     props: ['invoke', 'arg', 'alltimes', 'user'],
     data() {
         return {
+			dialog: false,
             entries: [],
             headers: [
                 {
@@ -110,6 +114,11 @@ export default {
             this.entries = entries;
         });
     },
+	methods: {
+		updateDialogStatus(data){
+			this.dialog=data;
+		}
+	}
 };
 </script>
 
