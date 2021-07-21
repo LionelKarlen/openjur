@@ -9,14 +9,21 @@
             :items-per-page="-1"
         >
             <template v-slot:[`item.actions`]="{ item }">
-                <v-icon small class="mr-2" @click="alert(item)">
+                <v-icon small class="mr-2" @click="openEditDialog(item)">
                     mdi-pencil
                 </v-icon>
                 <v-icon small> mdi-delete </v-icon>
             </template>
         </v-data-table>
-        <v-btn depressed color="primary" @click.stop="dialog=true">Add Entry</v-btn>
-		<edit-dialog :dialog="dialog" @updateDialogStatus="updateDialogStatus"/>
+        <v-btn depressed color="primary" @click.stop="dialog = true"
+            >Add Entry</v-btn
+        >
+        <edit-dialog
+            :dialog="dialog"
+            @updateDialogStatus="updateDialogStatus"
+            :editedItem="editedItem"
+			:isEdit="isEdit"
+        />
     </div>
 </template>
 
@@ -29,7 +36,20 @@ export default {
     props: ['invoke', 'arg', 'alltimes', 'user'],
     data() {
         return {
-			dialog: false,
+            dialog: false,
+			isEdit: false,
+			editedItem: {
+                Date: '',
+                Text: '',
+                User: '',
+                Hours: 0,
+            },
+			defaultItem: {
+                Date: '',
+                Text: '',
+                User: '',
+                Hours: 0,
+            },
             entries: [],
             headers: [
                 {
@@ -114,11 +134,18 @@ export default {
             this.entries = entries;
         });
     },
-	methods: {
-		updateDialogStatus(data){
-			this.dialog=data;
+    methods: {
+        updateDialogStatus(data) {
+            this.dialog = data;
+			this.editedItem=this.defaultItem;
+			this.isEdit=false;
+        },
+		openEditDialog(item) {
+			this.dialog=true;
+			this.editedItem=item;
+			this.isEdit=true;
 		}
-	}
+    },
 };
 </script>
 
