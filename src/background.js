@@ -65,6 +65,33 @@ ipcMain.handle('setTimeByID', async (event, data) => {
 	await knex('Times').where({ID:`${data.ID}`}).update(data);
 });
 
+ipcMain.handle('calculateTable', async (event, data) => {
+	return calculateTable(data);
+});
+
+ipcMain.handle('exportToFile', async (event, data) => {
+	let times = await knex
+        .select('*')
+        .from('Times')
+        .where({
+            ClientID: `${data}`,
+        });
+	let entries = await calculateTable(times);
+	console.log(entries);
+});
+
+async function calculateTable(data) {
+	let entries = data;
+            for (let i = 0; i < entries.length; i++) {
+                var user = await getUserByID(entries[i].UserID);
+                var client = await getClientByID(entries[i].ClientID);
+                entries[i].Amount = entries[i].Hours * user.Amount;
+                entries[i].User = user.Name;
+                entries[i].Client = client.Name;
+            }
+	return entries;
+}
+
 ipcMain.handle('addTime', async (event, data) => {
 	await knex('Times').insert(data);
 });
@@ -100,24 +127,32 @@ ipcMain.handle('getTimesByUserID', async (event, data) => {
 });
 
 ipcMain.handle('getClientByID', async (event, data) => {
-    let client = await knex
+    return getClientByID(data);
+});
+
+async function getClientByID(data) {
+	let client = await knex
         .select('*')
         .from('Clients')
         .where({
             ID: `${data}`,
         });
     return client[0];
-});
+}
 
 ipcMain.handle('getUserByID', async (event, data) => {
-    let users = await knex
+    return getUserByID(data);
+});
+
+async function getUserByID(data) {
+	let users = await knex
         .select('*')
         .from('Users')
         .where({
             ID: `${data}`,
         });
     return users[0];
-});
+}
 
 ipcMain.handle('getTimes', async (event, data) => {
     let times = await knex.select('*').from('Times');

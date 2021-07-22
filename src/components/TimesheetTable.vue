@@ -117,20 +117,21 @@ export default {
     async mounted() {
         ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
             console.log(data);
-            let entries = data;
-            for (let i = 0; i < entries.length; i++) {
-                var user = await ipcRenderer.invoke(
-                    'getUserByID',
-                    entries[i].UserID
-                );
-                var client = await ipcRenderer.invoke(
-                    'getClientByID',
-                    entries[i].ClientID
-                );
-                entries[i].Amount = entries[i].Hours * user.Amount;
-                entries[i].User = user.Name;
-                entries[i].Client = client.Name;
-            }
+            // let entries = data;
+            // for (let i = 0; i < entries.length; i++) {
+            //     var user = await ipcRenderer.invoke(
+            //         'getUserByID',
+            //         entries[i].UserID
+            //     );
+            //     var client = await ipcRenderer.invoke(
+            //         'getClientByID',
+            //         entries[i].ClientID
+            //     );
+            //     entries[i].Amount = entries[i].Hours * user.Amount;
+            //     entries[i].User = user.Name;
+            //     entries[i].Client = client.Name;
+            // }
+			let entries = await ipcRenderer.invoke("calculateTable", data);
             this.entries = entries;
         });
     },
