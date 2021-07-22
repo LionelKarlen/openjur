@@ -3,7 +3,10 @@
 import { app, protocol, BrowserWindow, ipcMain } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
+import Docxtemplater from 'docxtemplater';
 const isDevelopment = process.env.NODE_ENV !== 'production';
+var pizzip = require('pizzip');
+var fs=require('fs');
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -69,17 +72,6 @@ ipcMain.handle('calculateTable', async (event, data) => {
 	return calculateTable(data);
 });
 
-ipcMain.handle('exportToFile', async (event, data) => {
-	let times = await knex
-        .select('*')
-        .from('Times')
-        .where({
-            ClientID: `${data}`,
-        });
-	let entries = await calculateTable(times);
-	console.log(entries);
-});
-
 async function calculateTable(data) {
 	let entries = data;
             for (let i = 0; i < entries.length; i++) {
@@ -90,6 +82,51 @@ async function calculateTable(data) {
                 entries[i].Client = client.Name;
             }
 	return entries;
+}
+
+ipcMain.handle('exportToFile', async (event, data) => {
+	let times = await knex
+        .select('*')
+        .from('Times')
+        .where({
+            ClientID: `${data}`,
+        });
+	let entries = await calculateTable(times);
+	let total =0;
+	for (const entry of entries) {
+		total+=entry.Amount;
+	}
+	let obj = {
+		entries: entries,
+		client: entries[0].Client,
+		Total: total
+	}
+	console.log(obj);
+	writeToFile(obj);
+});
+
+function writeToFile(params) {
+	var content = fs.readFileSync('/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.docx', 'binary');
+	var zip=new pizzip(content);
+	var doc;
+	try {
+		doc=new Docxtemplater(zip)
+	} catch(error) {
+		console.log(error);
+	}
+	
+	doc.setData(params);
+
+	try {
+		doc.render()
+	} catch(error) {
+		console.log(error);
+	}
+	
+	var buf = doc.getZip().generate({type: 'nodebuffer'});
+	
+	fs.writeFileSync('/home/lionel/Documents/programming/Web/openjur/openjur/src/res/output.docx', buf);
+
 }
 
 ipcMain.handle('addTime', async (event, data) => {
