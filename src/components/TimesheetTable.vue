@@ -46,7 +46,7 @@ export default {
             },
 			defaultItem: {
                 Date: '',
-                Text: '',
+                Text: 'beans',
                 User: '',
                 Hours: 0,
             },
