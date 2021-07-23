@@ -15,7 +15,7 @@
                 <v-icon small> mdi-delete </v-icon>
             </template>
         </v-data-table>
-        <v-btn depressed color="primary" @click.stop="dialog = true"
+        <v-btn depressed color="primary" @click.stop="openAddDialog()"
             >Add Entry</v-btn
         >
         <edit-dialog
@@ -46,7 +46,7 @@ export default {
             },
             defaultItem: {
                 Date: '',
-                Text: 'beans',
+                Text: '',
                 User: '',
                 Hours: 0,
             },
@@ -142,6 +142,19 @@ export default {
             console.log(this.editedItem);
             this.isEdit = true;
         },
+		openAddDialog() {
+			let date = new Date(Date.now()).valueOf()/1000;
+			this.editedItem= {
+				Date: date, 
+                Text: '',
+                UserID: !this.user?null:this.entries[0].UserID,
+				ClientID: !this.user?this.entries[0].ClientID:null,
+                Hours: 0,
+			};
+			this.dialog=true;
+            console.log(this.editedItem);
+			this.isEdit=false;
+		}
     },
 };
 </script>

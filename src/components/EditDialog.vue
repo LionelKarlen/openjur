@@ -116,7 +116,7 @@ export default {
             clients: [],
             user: {},
             users: [],
-            text: 'preload',
+            text: '',
             textPropose: ['Did stuff', 'Did other stuff'],
             hours: 0,
             menu: false,
@@ -136,12 +136,12 @@ export default {
                 Hours: Number(this.hours),
                 ID: this.editedItem.ID,
             };
+			console.log(obj)
             if (this.isEdit) {
                 await ipcRenderer.invoke('setTimeByID', obj);
             } else {
                 await ipcRenderer.invoke('addTime', obj);
             }
-            console.log(obj);
             this.$emit('updateDialogStatus', false);
         },
     },

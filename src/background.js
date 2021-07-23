@@ -136,8 +136,18 @@ function writeToFile(params) {
     );
 }
 
+function generateID() {
+	return Math.round(new Date(Date.now()).valueOf()/100);
+}
+
 ipcMain.handle('addTime', async (event, data) => {
-    await knex('Times').insert(data);
+	let id = generateID();
+	let entries = {
+		...data,
+		ID: id
+	}
+	console.log(entries);
+    await knex('Times').insert(entries);
 });
 
 ipcMain.handle('getClients', async () => {
