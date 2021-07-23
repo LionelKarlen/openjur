@@ -9,29 +9,61 @@
             :items-per-page="-1"
         >
             <template v-slot:[`item.actions`]="{ item }">
-                <v-icon small class="mr-2" @click="document.alert(item)">
+                <v-icon small class="mr-2" @click="openEditDialog(item)">
                     mdi-pencil
                 </v-icon>
-                <v-icon small> mdi-delete </v-icon>
+                <v-icon small @click.stop="openDeleteDialog(item)">
+                    mdi-delete
+                </v-icon>
             </template>
         </v-data-table>
-        <v-btn depressed color="primary">Add Entry</v-btn>
+        <v-btn depressed color="primary" @click.stop="openAddDialog()"
+            >Add Entry</v-btn
+        >
+        <edit-dialog
+            :dialog="dialog"
+            @updateDialogStatus="updateDialogStatus"
+            :editedItem="editedItem"
+            :isEdit="isEdit"
+        />
+        <delete-dialog
+            :dialog="deleteDialog"
+            :editedItem="editedItem"
+            @updateDialogStatus="updateDialogStatus"
+        />
     </div>
 </template>
 
 <script>
+import DeleteDialog from './DeleteDialog.vue';
+import EditDialog from './EditDialog.vue';
 const { ipcRenderer } = require('electron');
 export default {
+    components: { EditDialog, DeleteDialog },
     name: 'TimesheetTable',
     props: ['invoke', 'arg', 'alltimes', 'user'],
     data() {
         return {
+            dialog: false,
+            isEdit: false,
+            editedItem: {
+                Date: '',
+                Text: '',
+                User: '',
+                Hours: 0,
+            },
+            defaultItem: {
+                Date: '',
+                Text: '',
+                User: '',
+                Hours: 0,
+            },
             entries: [],
             headers: [
                 {
                     text: 'Date',
                     sortable: true,
-                    value: 'Date',
+                    value: 'formattedDate',
                 },
                 {
                     text: 'Text',
@@ -59,7 +91,7 @@ export default {
                 {
                     text: 'Date',
                     sortable: true,
-                    value: 'Date',
+                    value: 'formattedDate',
                 },
                 {
                     text: 'Text',
@@ -88,27 +120,55 @@ export default {
                 },
                 { text: 'Actions', value: 'actions', sortable: false },
             ],
+            deleteDialog: false,
         };
     },
     async mounted() {
-        ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
-            console.log(data);
-            let entries = data;
-            for (let i = 0; i < entries.length; i++) {
-                var user = await ipcRenderer.invoke(
-                    'getUserByID',
-                    entries[i].UserID
-                );
-                var client = await ipcRenderer.invoke(
-                    'getClientByID',
-                    entries[i].ClientID
-                );
-                entries[i].Amount = entries[i].Hours * user.Amount;
-                entries[i].User = user.Name;
-                entries[i].Client = client.Name;
-            }
-            this.entries = entries;
-        });
+        await this.getData();
+    },
+    methods: {
+        async getData() {
+            ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
+                let entries = await ipcRenderer.invoke('calculateTable', data);
+                for (var entry of entries) {
+                    entry.formattedDate = new Date(entry.Date * 1000)
+                        .toISOString()
+                        .substring(0, 10);
+                }
+                this.entries = entries;
+                console.log(this.entries);
+            });
+        },
+        updateDialogStatus(data) {
+            this.dialog = data;
+            this.deleteDialog = data;
+            this.editedItem = this.defaultItem;
+            this.isEdit = false;
+            this.getData();
+        },
+        openEditDialog(item) {
+            this.editedItem = item;
+            this.dialog = true;
+            console.log(this.editedItem);
+            this.isEdit = true;
+        },
+        openAddDialog() {
+            let date = new Date(Date.now()).valueOf() / 1000;
+            this.editedItem = {
+                Date: date,
+                Text: '',
+                UserID: !this.user ? null : this.entries[0].UserID,
+                ClientID: !this.user ? this.entries[0].ClientID : null,
+                Hours: 0,
+            };
+            this.dialog = true;
+            console.log(this.editedItem);
+            this.isEdit = false;
+        },
+        openDeleteDialog(item) {
+            this.editedItem = item;
+            this.deleteDialog = true;
+        },
     },
 };
 </script>
