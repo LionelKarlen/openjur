@@ -22,7 +22,7 @@
             :dialog="dialog"
             @updateDialogStatus="updateDialogStatus"
             :editedItem="editedItem"
-			:isEdit="isEdit"
+            :isEdit="isEdit"
         />
     </div>
 </template>
@@ -37,14 +37,14 @@ export default {
     data() {
         return {
             dialog: false,
-			isEdit: false,
-			editedItem: {
+            isEdit: false,
+            editedItem: {
                 Date: '',
                 Text: '',
                 User: '',
                 Hours: 0,
             },
-			defaultItem: {
+            defaultItem: {
                 Date: '',
                 Text: 'beans',
                 User: '',
@@ -115,37 +115,28 @@ export default {
         };
     },
     async mounted() {
-        ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
-            console.log(data);
-            // let entries = data;
-            // for (let i = 0; i < entries.length; i++) {
-            //     var user = await ipcRenderer.invoke(
-            //         'getUserByID',
-            //         entries[i].UserID
-            //     );
-            //     var client = await ipcRenderer.invoke(
-            //         'getClientByID',
-            //         entries[i].ClientID
-            //     );
-            //     entries[i].Amount = entries[i].Hours * user.Amount;
-            //     entries[i].User = user.Name;
-            //     entries[i].Client = client.Name;
-            // }
-			let entries = await ipcRenderer.invoke("calculateTable", data);
-            this.entries = entries;
-        });
+        await this.getData();
     },
     methods: {
+        async getData() {
+            ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
+                console.log(data);
+                let entries = await ipcRenderer.invoke('calculateTable', data);
+                this.entries = entries;
+            });
+        },
         updateDialogStatus(data) {
             this.dialog = data;
-			this.editedItem=this.defaultItem;
-			this.isEdit=false;
+            this.editedItem = this.defaultItem;
+            this.isEdit = false;
+            this.getData();
         },
-		openEditDialog(item) {
-			this.dialog=true;
-			this.editedItem=item;
-			this.isEdit=true;
-		}
+        openEditDialog(item) {
+            this.editedItem = item;
+            this.dialog = true;
+            console.log(this.editedItem);
+            this.isEdit = true;
+        },
     },
 };
 </script>

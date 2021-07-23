@@ -9,7 +9,9 @@
             :arg="this.$route.params.id"
             :user="false"
         />
-        <v-btn depressed color="primary" @click="exportToFile"> Export to File </v-btn>
+        <v-btn depressed color="primary" @click="exportToFile">
+            Export to File
+        </v-btn>
     </div>
 </template>
 
@@ -34,11 +36,11 @@ export default {
             this.client = data;
         });
     },
-	methods: {
-		exportToFile() {
-			ipcRenderer.invoke('exportToFile', this.$route.params.id);
-		}
-	}
+    methods: {
+        exportToFile() {
+            ipcRenderer.invoke('exportToFile', this.$route.params.id);
+        },
+    },
 };
 </script>
 

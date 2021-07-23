@@ -6,7 +6,7 @@ import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import Docxtemplater from 'docxtemplater';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 var pizzip = require('pizzip');
-var fs=require('fs');
+var fs = require('fs');
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -65,72 +65,79 @@ async function createWindow() {
 }
 
 ipcMain.handle('setTimeByID', async (event, data) => {
-	await knex('Times').where({ID:`${data.ID}`}).update(data);
+    await knex('Times')
+        .where({ ID: `${data.ID}` })
+        .update(data);
 });
 
 ipcMain.handle('calculateTable', async (event, data) => {
-	return calculateTable(data);
+    return calculateTable(data);
 });
 
 async function calculateTable(data) {
-	let entries = data;
-            for (let i = 0; i < entries.length; i++) {
-                var user = await getUserByID(entries[i].UserID);
-                var client = await getClientByID(entries[i].ClientID);
-                entries[i].Amount = entries[i].Hours * user.Amount;
-                entries[i].User = user.Name;
-                entries[i].Client = client.Name;
-            }
-	return entries;
+    let entries = data;
+    for (let i = 0; i < entries.length; i++) {
+        var user = await getUserByID(entries[i].UserID);
+        var client = await getClientByID(entries[i].ClientID);
+        entries[i].Amount = entries[i].Hours * user.Amount;
+        entries[i].User = user.Name;
+        entries[i].Client = client.Name;
+    }
+    return entries;
 }
 
 ipcMain.handle('exportToFile', async (event, data) => {
-	let times = await knex
+    let times = await knex
         .select('*')
         .from('Times')
         .where({
             ClientID: `${data}`,
         });
-	let entries = await calculateTable(times);
-	let total =0;
-	for (const entry of entries) {
-		total+=entry.Amount;
-	}
-	let obj = {
-		entries: entries,
-		client: entries[0].Client,
-		Total: total
-	}
-	console.log(obj);
-	writeToFile(obj);
+    let entries = await calculateTable(times);
+    let total = 0;
+    for (const entry of entries) {
+        total += entry.Amount;
+    }
+    let obj = {
+        entries: entries,
+        client: entries[0].Client,
+        Total: total,
+    };
+    console.log(obj);
+    writeToFile(obj);
 });
 
 function writeToFile(params) {
-	var content = fs.readFileSync('/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.docx', 'binary');
-	var zip=new pizzip(content);
-	var doc;
-	try {
-		doc=new Docxtemplater(zip)
-	} catch(error) {
-		console.log(error);
-	}
-	
-	doc.setData(params);
+    var content = fs.readFileSync(
+        '/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.docx',
+        'binary'
+    );
+    var zip = new pizzip(content);
+    var doc;
+    try {
+        doc = new Docxtemplater(zip);
+    } catch (error) {
+        console.log(error);
+    }
 
-	try {
-		doc.render()
-	} catch(error) {
-		console.log(error);
-	}
-	
-	var buf = doc.getZip().generate({type: 'nodebuffer'});
-	
-	fs.writeFileSync('/home/lionel/Documents/programming/Web/openjur/openjur/src/res/output.docx', buf);
+    doc.setData(params);
 
+    try {
+        doc.render();
+    } catch (error) {
+        console.log(error);
+    }
+
+    var buf = doc.getZip().generate({ type: 'nodebuffer' });
+
+    fs.writeFileSync(
+        '/home/lionel/Documents/programming/Web/openjur/openjur/src/res/output.docx',
+        buf
+    );
 }
 
 ipcMain.handle('addTime', async (event, data) => {
-	await knex('Times').insert(data);
+    await knex('Times').insert(data);
 });
 
 ipcMain.handle('getClients', async () => {
@@ -168,7 +175,7 @@ ipcMain.handle('getClientByID', async (event, data) => {
 });
 
 async function getClientByID(data) {
-	let client = await knex
+    let client = await knex
         .select('*')
         .from('Clients')
         .where({
@@ -182,7 +189,7 @@ ipcMain.handle('getUserByID', async (event, data) => {
 });
 
 async function getUserByID(data) {
-	let users = await knex
+    let users = await knex
         .select('*')
         .from('Users')
         .where({
