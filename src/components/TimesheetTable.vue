@@ -12,7 +12,9 @@
                 <v-icon small class="mr-2" @click="openEditDialog(item)">
                     mdi-pencil
                 </v-icon>
-                <v-icon small> mdi-delete </v-icon>
+                <v-icon small @click.stop="openDeleteDialog(item)">
+                    mdi-delete
+                </v-icon>
             </template>
         </v-data-table>
         <v-btn depressed color="primary" @click.stop="openAddDialog()"
@@ -24,14 +26,20 @@
             :editedItem="editedItem"
             :isEdit="isEdit"
         />
+        <delete-dialog
+            :dialog="deleteDialog"
+            :editedItem="editedItem"
+            @updateDialogStatus="updateDialogStatus"
+        />
     </div>
 </template>
 
 <script>
+import DeleteDialog from './DeleteDialog.vue';
 import EditDialog from './EditDialog.vue';
 const { ipcRenderer } = require('electron');
 export default {
-    components: { EditDialog },
+    components: { EditDialog, DeleteDialog },
     name: 'TimesheetTable',
     props: ['invoke', 'arg', 'alltimes', 'user'],
     data() {
@@ -112,6 +120,7 @@ export default {
                 },
                 { text: 'Actions', value: 'actions', sortable: false },
             ],
+            deleteDialog: false,
         };
     },
     async mounted() {
@@ -132,6 +141,7 @@ export default {
         },
         updateDialogStatus(data) {
             this.dialog = data;
+            this.deleteDialog = data;
             this.editedItem = this.defaultItem;
             this.isEdit = false;
             this.getData();
@@ -142,19 +152,23 @@ export default {
             console.log(this.editedItem);
             this.isEdit = true;
         },
-		openAddDialog() {
-			let date = new Date(Date.now()).valueOf()/1000;
-			this.editedItem= {
-				Date: date, 
+        openAddDialog() {
+            let date = new Date(Date.now()).valueOf() / 1000;
+            this.editedItem = {
+                Date: date,
                 Text: '',
-                UserID: !this.user?null:this.entries[0].UserID,
-				ClientID: !this.user?this.entries[0].ClientID:null,
+                UserID: !this.user ? null : this.entries[0].UserID,
+                ClientID: !this.user ? this.entries[0].ClientID : null,
                 Hours: 0,
-			};
-			this.dialog=true;
+            };
+            this.dialog = true;
             console.log(this.editedItem);
-			this.isEdit=false;
-		}
+            this.isEdit = false;
+        },
+        openDeleteDialog(item) {
+            this.editedItem = item;
+            this.deleteDialog = true;
+        },
     },
 };
 </script>

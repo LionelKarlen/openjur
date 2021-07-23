@@ -136,7 +136,7 @@ export default {
                 Hours: Number(this.hours),
                 ID: this.editedItem.ID,
             };
-			console.log(obj)
+            console.log(obj);
             if (this.isEdit) {
                 await ipcRenderer.invoke('setTimeByID', obj);
             } else {
