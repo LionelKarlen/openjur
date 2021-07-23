@@ -55,7 +55,7 @@ export default {
                 {
                     text: 'Date',
                     sortable: true,
-                    value: 'Date',
+                    value: 'formattedDate',
                 },
                 {
                     text: 'Text',
@@ -83,7 +83,7 @@ export default {
                 {
                     text: 'Date',
                     sortable: true,
-                    value: 'Date',
+                    value: 'formattedDate',
                 },
                 {
                     text: 'Text',
@@ -120,9 +120,14 @@ export default {
     methods: {
         async getData() {
             ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
-                console.log(data);
                 let entries = await ipcRenderer.invoke('calculateTable', data);
+                for (var entry of entries) {
+                    entry.formattedDate = new Date(entry.Date * 1000)
+                        .toISOString()
+                        .substring(0, 10);
+                }
                 this.entries = entries;
+                console.log(this.entries);
             });
         },
         updateDialogStatus(data) {
