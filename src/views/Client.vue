@@ -9,7 +9,9 @@
             :arg="this.$route.params.id"
             :user="false"
         />
-        <v-btn depressed color="primary"> Export to File </v-btn>
+        <v-btn depressed color="primary" @click="exportToFile">
+            Export to File
+        </v-btn>
     </div>
 </template>
 
@@ -21,7 +23,6 @@ export default {
     name: 'Client',
     data() {
         return {
-            entries: [],
             client: {},
         };
     },
@@ -34,6 +35,11 @@ export default {
             console.log(data);
             this.client = data;
         });
+    },
+    methods: {
+        exportToFile() {
+            ipcRenderer.invoke('exportToFile', this.$route.params.id);
+        },
     },
 };
 </script>
