@@ -22,6 +22,7 @@ const routes = [
         props: {
             baseroute: '/client',
             invoke: 'getClients',
+            isUser: false,
         },
     },
     {
@@ -30,6 +31,7 @@ const routes = [
         props: {
             baseroute: '/user',
             invoke: 'getUsers',
+            isUser: true,
         },
     },
     {

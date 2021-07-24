@@ -20,7 +20,7 @@
         <v-btn depressed color="primary" @click.stop="openAddDialog()"
             >Add Entry</v-btn
         >
-        <edit-dialog
+        <edit-entry-dialog
             :dialog="dialog"
             @updateDialogStatus="updateDialogStatus"
             :editedItem="editedItem"
@@ -36,12 +36,12 @@
 
 <script>
 import DeleteDialog from './DeleteDialog.vue';
-import EditDialog from './EditDialog.vue';
+import EditEntryDialog from './EditEntryDialog.vue';
 const { ipcRenderer } = require('electron');
 export default {
-    components: { EditDialog, DeleteDialog },
+    components: { EditEntryDialog, DeleteDialog },
     name: 'TimesheetTable',
-    props: ['invoke', 'arg', 'alltimes', 'user'],
+    props: ['invoke', 'arg', 'alltimes', 'user', 'editID'],
     data() {
         return {
             dialog: false,
@@ -157,8 +157,8 @@ export default {
             this.editedItem = {
                 Date: date,
                 Text: '',
-                UserID: !this.user ? null : this.entries[0].UserID,
-                ClientID: !this.user ? this.entries[0].ClientID : null,
+                UserID: !this.user ? null : this.editID,
+                ClientID: !this.user ? this.editID : null,
                 Hours: 0,
             };
             this.dialog = true;

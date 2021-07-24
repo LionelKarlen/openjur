@@ -218,6 +218,50 @@ ipcMain.handle('deleteTimeByID', async (event, data) => {
         .where({ ID: `${data}` })
         .del();
 });
+
+ipcMain.handle('addUser', async (event, data) => {
+    let id = generateID();
+    let entries = {
+        Name: data.Name,
+        Amount: data.Amount,
+        ID: id,
+    };
+    console.log(entries);
+    await knex('Users').insert(entries);
+});
+
+ipcMain.handle('setUserByID', async (event, data) => {
+    let obj = {
+        Name: data.Name,
+        Amount: data.Amount,
+        ID: data.ID,
+    };
+    await knex('Users')
+        .where({ ID: `${obj.ID}` })
+        .update(obj);
+});
+
+ipcMain.handle('addClient', async (event, data) => {
+    let id = generateID();
+    let entries = {
+        Name: data.Name,
+        Address: data.Address,
+        ID: id,
+    };
+    console.log(entries);
+    await knex('Clients').insert(entries);
+});
+
+ipcMain.handle('setClientByID', async (event, data) => {
+    let obj = {
+        Name: data.Name,
+        Address: data.Address,
+        ID: data.ID,
+    };
+    await knex('Clients')
+        .where({ ID: `${obj.ID}` })
+        .update(obj);
+});
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar
