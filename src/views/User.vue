@@ -28,12 +28,17 @@
             :isUser="true"
             @updateDialogStatus="updateDialogStatus"
         />
-		<delete-dialog
+        <delete-dialog
             :dialog="deleteDialog"
             :editedItem="editedItem"
-			invoke="deleteUserByID"
-			route="/users"
+            invoke="deleteUserByID"
+            route="/users"
             @updateDialogStatus="updateDialogStatus"
+            @failed="snackbar = true"
+        />
+        <failed-delete-snackbar
+            :snackbar="snackbar"
+            @closeSnackbar="snackbar = false"
         />
     </div>
 </template>
@@ -41,6 +46,7 @@
 <script>
 import DeleteDialog from '../components/DeleteDialog.vue';
 import EditDialog from '../components/EditDialog.vue';
+import FailedDeleteSnackbar from '../components/FailedDeleteSnackbar.vue';
 const { ipcRenderer } = require('electron');
 import TimesheetTable from '../components/TimesheetTable.vue';
 export default {
@@ -51,12 +57,15 @@ export default {
             user: {},
             dialog: false,
             editedItem: {},
-			deleteDialog: false,
+            deleteDialog: false,
+            snackbar: false,
         };
     },
     components: {
         TimesheetTable,
-        EditDialog, DeleteDialog,
+        EditDialog,
+        DeleteDialog,
+        FailedDeleteSnackbar,
     },
     async mounted() {
         await this.getData();
@@ -73,13 +82,13 @@ export default {
             this.editedItem = this.user;
             this.dialog = true;
         },
-		openDeleteDialog(item) {
-			this.editedItem=this.user;
-			this.deleteDialog= true;
-		},
+        openDeleteDialog(item) {
+            this.editedItem = this.user;
+            this.deleteDialog = true;
+        },
         updateDialogStatus(params) {
             this.dialog = params;
-			this.deleteDialog=params;
+            this.deleteDialog = params;
             this.editedItem = {
                 Name: '',
                 Address: '',

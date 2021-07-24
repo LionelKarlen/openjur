@@ -20,16 +20,18 @@
 const { ipcRenderer } = require('electron');
 export default {
     name: 'DeleteDialog',
-    props: ['dialog', 'editedItem', "invoke", "route"],
+    props: ['dialog', 'editedItem', 'invoke', 'route'],
     methods: {
         onClose() {
             this.$emit('updateDialogStatus', false);
         },
         async onAccept() {
             let res = await ipcRenderer.invoke(this.invoke, this.editedItem.ID);
-			if(res && this.route!=null) {
-				this.$router.push(this.route);
-			}
+            if (res && this.route != null) {
+                this.$router.push(this.route);
+            } else {
+                this.$emit('failed');
+            }
             this.onClose();
         },
     },

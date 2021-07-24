@@ -29,7 +29,7 @@
         <delete-dialog
             :dialog="deleteDialog"
             :editedItem="editedItem"
-			invoke="deleteTimeByID"
+            invoke="deleteTimeByID"
             @updateDialogStatus="updateDialogStatus"
         />
     </div>

@@ -57,12 +57,12 @@ export default {
         };
     },
     methods: {
-		async getData() {
-ipcRenderer.invoke(this.invoke).then((data) => {
-            console.log(data);
-            this.entries = data;
-        });
-		},
+        async getData() {
+            ipcRenderer.invoke(this.invoke).then((data) => {
+                console.log(data);
+                this.entries = data;
+            });
+        },
         onUpdate() {
             console.log(this.selected);
             this.$router.push(`${this.baseroute}/${this.selected}`);
@@ -72,7 +72,7 @@ ipcRenderer.invoke(this.invoke).then((data) => {
         },
         updateDialogStatus(params) {
             this.dialog = params;
-			this.getData();
+            this.getData();
         },
     },
     mounted() {

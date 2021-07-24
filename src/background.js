@@ -165,7 +165,7 @@ ipcMain.handle('getTimesByClientID', async (event, data) => {
 });
 
 async function getTimesByClientID(id) {
-	let times = await knex
+    let times = await knex
         .select('*')
         .from('Times')
         .where({
@@ -179,7 +179,7 @@ ipcMain.handle('getTimesByUserID', async (event, data) => {
 });
 
 async function getTimesByUserID(id) {
-	let times = await knex
+    let times = await knex
         .select('*')
         .from('Times')
         .where({
@@ -250,16 +250,18 @@ ipcMain.handle('setUserByID', async (event, data) => {
 });
 
 ipcMain.handle('deleteUserByID', async (event, data) => {
-	let entries = await getTimesByUserID(data);
-	console.log(entries);
-	if(entries.length>0) {
-		return false;
-	} else {
-		await knex('Users').where({
-			ID: `${data}`
-		}).del();
-		return true
-	}
+    let entries = await getTimesByUserID(data);
+    console.log(entries);
+    if (entries.length > 0) {
+        return false;
+    } else {
+        await knex('Users')
+            .where({
+                ID: `${data}`,
+            })
+            .del();
+        return true;
+    }
 });
 
 ipcMain.handle('addClient', async (event, data) => {
@@ -285,17 +287,19 @@ ipcMain.handle('setClientByID', async (event, data) => {
 });
 
 ipcMain.handle('deleteClientByID', async (event, data) => {
-	let entries = await getTimesByClientID(data);
-	console.log(entries);
-	if(entries.length>0) {
-		return false;
-	} else {
-		await knex('Clients').where({
-			ID: `${data}`
-		}).del();
-		return true
-	}
-})
+    let entries = await getTimesByClientID(data);
+    console.log(entries);
+    if (entries.length > 0) {
+        return false;
+    } else {
+        await knex('Clients')
+            .where({
+                ID: `${data}`,
+            })
+            .del();
+        return true;
+    }
+});
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar
