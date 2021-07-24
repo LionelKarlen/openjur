@@ -5,8 +5,8 @@
 
             <v-spacer></v-spacer>
 
-            <v-btn icon>
-                <v-icon>mdi-settings</v-icon>
+            <v-btn icon to="/settings">
+                <v-icon>mdi-cog</v-icon>
             </v-btn>
 
             <template v-slot:extension>
@@ -15,6 +15,7 @@
                     <v-tab to="/clients">Clients</v-tab>
                     <v-tab to="/users">Users</v-tab>
                     <v-tab to="/times">Times</v-tab>
+                    <v-tab to="/settings">Settings</v-tab>
                 </v-tabs>
             </template>
         </v-app-bar>

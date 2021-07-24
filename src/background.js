@@ -7,6 +7,7 @@ import Docxtemplater from 'docxtemplater';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 var pizzip = require('pizzip');
 var fs = require('fs');
+const path = require('path');
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -86,6 +87,19 @@ async function calculateTable(data) {
     return entries;
 }
 
+ipcMain.handle('getSettings', async (event, data) => {
+    return await getSettings();
+});
+
+async function getSettings() {
+    let entries = await knex('Settings').first();
+    return entries;
+}
+
+ipcMain.handle('setSettings', async (event, data) => {
+    await knex('Settings').first().update(data);
+});
+
 ipcMain.handle('exportToFile', async (event, data) => {
     let times = await knex
         .select('*')
@@ -98,20 +112,19 @@ ipcMain.handle('exportToFile', async (event, data) => {
     for (const entry of entries) {
         total += entry.Amount;
     }
+    let settings = await getSettings();
+    console.log(settings);
     let obj = {
         entries: entries,
         client: entries[0].Client,
-        Total: total,
+        total: total + total * (settings.MWST / 100),
     };
     console.log(obj);
-    writeToFile(obj);
+    return writeToFile(obj, settings);
 });
 
-function writeToFile(params) {
-    var content = fs.readFileSync(
-        '/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.docx',
-        'binary'
-    );
+function writeToFile(params, settings) {
+    var content = fs.readFileSync(settings.TemplateFile, 'binary');
     var zip = new pizzip(content);
     var doc;
     try {
@@ -129,11 +142,12 @@ function writeToFile(params) {
     }
 
     var buf = doc.getZip().generate({ type: 'nodebuffer' });
-
-    fs.writeFileSync(
-        '/home/lionel/Documents/programming/Web/openjur/openjur/src/res/output.docx',
-        buf
-    );
+    let p = `${path.join(
+        path.dirname(settings.TemplateFile),
+        params.client
+    )}.docx`;
+    fs.writeFileSync(p, buf);
+    return p;
 }
 
 function generateID() {
@@ -161,24 +175,32 @@ ipcMain.handle('getUsers', async () => {
 });
 
 ipcMain.handle('getTimesByClientID', async (event, data) => {
-    let times = await knex
-        .select('*')
-        .from('Times')
-        .where({
-            ClientID: `${data}`,
-        });
-    return times;
+    return await getTimesByClientID(data);
 });
 
-ipcMain.handle('getTimesByUserID', async (event, data) => {
+async function getTimesByClientID(id) {
     let times = await knex
         .select('*')
         .from('Times')
         .where({
-            UserID: `${data}`,
+            ClientID: `${id}`,
         });
     return times;
+}
+
+ipcMain.handle('getTimesByUserID', async (event, data) => {
+    return await getTimesByUserID(data);
 });
+
+async function getTimesByUserID(id) {
+    let times = await knex
+        .select('*')
+        .from('Times')
+        .where({
+            UserID: `${id}`,
+        });
+    return times;
+}
 
 ipcMain.handle('getClientByID', async (event, data) => {
     return getClientByID(data);
@@ -217,6 +239,80 @@ ipcMain.handle('deleteTimeByID', async (event, data) => {
     await knex('Times')
         .where({ ID: `${data}` })
         .del();
+});
+
+ipcMain.handle('addUser', async (event, data) => {
+    let id = generateID();
+    let entries = {
+        Name: data.Name,
+        Amount: data.Amount,
+        ID: id,
+    };
+    console.log(entries);
+    await knex('Users').insert(entries);
+});
+
+ipcMain.handle('setUserByID', async (event, data) => {
+    let obj = {
+        Name: data.Name,
+        Amount: data.Amount,
+        ID: data.ID,
+    };
+    await knex('Users')
+        .where({ ID: `${obj.ID}` })
+        .update(obj);
+});
+
+ipcMain.handle('deleteUserByID', async (event, data) => {
+    let entries = await getTimesByUserID(data);
+    console.log(entries);
+    if (entries.length > 0) {
+        return false;
+    } else {
+        await knex('Users')
+            .where({
+                ID: `${data}`,
+            })
+            .del();
+        return true;
+    }
+});
+
+ipcMain.handle('addClient', async (event, data) => {
+    let id = generateID();
+    let entries = {
+        Name: data.Name,
+        Address: data.Address,
+        ID: id,
+    };
+    console.log(entries);
+    await knex('Clients').insert(entries);
+});
+
+ipcMain.handle('setClientByID', async (event, data) => {
+    let obj = {
+        Name: data.Name,
+        Address: data.Address,
+        ID: data.ID,
+    };
+    await knex('Clients')
+        .where({ ID: `${obj.ID}` })
+        .update(obj);
+});
+
+ipcMain.handle('deleteClientByID', async (event, data) => {
+    let entries = await getTimesByClientID(data);
+    console.log(entries);
+    if (entries.length > 0) {
+        return false;
+    } else {
+        await knex('Clients')
+            .where({
+                ID: `${data}`,
+            })
+            .del();
+        return true;
+    }
 });
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
