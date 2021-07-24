@@ -161,24 +161,32 @@ ipcMain.handle('getUsers', async () => {
 });
 
 ipcMain.handle('getTimesByClientID', async (event, data) => {
-    let times = await knex
-        .select('*')
-        .from('Times')
-        .where({
-            ClientID: `${data}`,
-        });
-    return times;
+    return await getTimesByClientID(data);
 });
 
-ipcMain.handle('getTimesByUserID', async (event, data) => {
-    let times = await knex
+async function getTimesByClientID(id) {
+	let times = await knex
         .select('*')
         .from('Times')
         .where({
-            UserID: `${data}`,
+            ClientID: `${id}`,
         });
     return times;
+}
+
+ipcMain.handle('getTimesByUserID', async (event, data) => {
+    return await getTimesByUserID(data);
 });
+
+async function getTimesByUserID(id) {
+	let times = await knex
+        .select('*')
+        .from('Times')
+        .where({
+            UserID: `${id}`,
+        });
+    return times;
+}
 
 ipcMain.handle('getClientByID', async (event, data) => {
     return getClientByID(data);
@@ -241,6 +249,19 @@ ipcMain.handle('setUserByID', async (event, data) => {
         .update(obj);
 });
 
+ipcMain.handle('deleteUserByID', async (event, data) => {
+	let entries = await getTimesByUserID(data);
+	console.log(entries);
+	if(entries.length>0) {
+		return false;
+	} else {
+		await knex('Users').where({
+			ID: `${data}`
+		}).del();
+		return true
+	}
+});
+
 ipcMain.handle('addClient', async (event, data) => {
     let id = generateID();
     let entries = {
@@ -262,6 +283,19 @@ ipcMain.handle('setClientByID', async (event, data) => {
         .where({ ID: `${obj.ID}` })
         .update(obj);
 });
+
+ipcMain.handle('deleteClientByID', async (event, data) => {
+	let entries = await getTimesByClientID(data);
+	console.log(entries);
+	if(entries.length>0) {
+		return false;
+	} else {
+		await knex('Clients').where({
+			ID: `${data}`
+		}).del();
+		return true
+	}
+})
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar

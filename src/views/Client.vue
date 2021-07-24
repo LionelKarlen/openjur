@@ -31,10 +31,18 @@
             :isUser="false"
             @updateDialogStatus="updateDialogStatus"
         />
+		<delete-dialog
+            :dialog="deleteDialog"
+            :editedItem="editedItem"
+			invoke="deleteClientByID"
+			route="/clients"
+            @updateDialogStatus="updateDialogStatus"
+        />
     </div>
 </template>
 
 <script>
+import DeleteDialog from '../components/DeleteDialog.vue';
 import EditDialog from '../components/EditDialog.vue';
 const { ipcRenderer } = require('electron');
 import TimesheetTable from '../components/TimesheetTable.vue';
@@ -46,11 +54,12 @@ export default {
             client: {},
             dialog: false,
             editedItem: {},
+			deleteDialog: false,
         };
     },
     components: {
         TimesheetTable,
-        EditDialog,
+        EditDialog, DeleteDialog,
     },
     async mounted() {
         await this.getData();
@@ -70,8 +79,13 @@ export default {
             this.dialog = true;
             this.editedItem = this.client;
         },
+		openDeleteDialog(item) {
+			this.editedItem=this.client;
+			this.deleteDialog= true;
+		},
         updateDialogStatus(params) {
             this.dialog = params;
+			this.deleteDialog=params;
             this.editedItem = {
                 Name: '',
                 Address: '',

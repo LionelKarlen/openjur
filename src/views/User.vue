@@ -28,15 +28,22 @@
             :isUser="true"
             @updateDialogStatus="updateDialogStatus"
         />
+		<delete-dialog
+            :dialog="deleteDialog"
+            :editedItem="editedItem"
+			invoke="deleteUserByID"
+			route="/users"
+            @updateDialogStatus="updateDialogStatus"
+        />
     </div>
 </template>
 
 <script>
+import DeleteDialog from '../components/DeleteDialog.vue';
 import EditDialog from '../components/EditDialog.vue';
 const { ipcRenderer } = require('electron');
 import TimesheetTable from '../components/TimesheetTable.vue';
 export default {
-    components: { TimesheetTable },
     name: 'User',
     data() {
         return {
@@ -44,11 +51,12 @@ export default {
             user: {},
             dialog: false,
             editedItem: {},
+			deleteDialog: false,
         };
     },
     components: {
         TimesheetTable,
-        EditDialog,
+        EditDialog, DeleteDialog,
     },
     async mounted() {
         await this.getData();
@@ -65,8 +73,13 @@ export default {
             this.editedItem = this.user;
             this.dialog = true;
         },
+		openDeleteDialog(item) {
+			this.editedItem=this.user;
+			this.deleteDialog= true;
+		},
         updateDialogStatus(params) {
             this.dialog = params;
+			this.deleteDialog=params;
             this.editedItem = {
                 Name: '',
                 Address: '',
