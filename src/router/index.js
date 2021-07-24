@@ -4,6 +4,7 @@ import VueRouter from 'vue-router';
 import Home from '../views/Home.vue';
 import Client from '../views/Client.vue';
 import User from '../views/User.vue';
+import Settings from '../views/Settings.vue';
 
 import SelectionList from '../components/SelectionList.vue';
 import TimesheetTable from '../components/TimesheetTable.vue';
@@ -51,6 +52,11 @@ const routes = [
             invoke: 'getTimes',
             alltimes: true,
         },
+    },
+    {
+        path: '/settings',
+        name: 'Settings',
+        component: Settings,
     },
 ];
 

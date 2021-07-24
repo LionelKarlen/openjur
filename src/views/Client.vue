@@ -43,14 +43,20 @@
             :snackbar="snackbar"
             @closeSnackbar="snackbar = false"
         />
+        <success-write-snackbar
+            :snackbar="succSnackbar"
+            @closeSnackbar="succSnackbar = false"
+            :path="path"
+        />
     </div>
 </template>
 
 <script>
+const { ipcRenderer } = require('electron');
 import DeleteDialog from '../components/DeleteDialog.vue';
 import EditDialog from '../components/EditDialog.vue';
 import FailedDeleteSnackbar from '../components/FailedDeleteSnackbar.vue';
-const { ipcRenderer } = require('electron');
+import SuccessWriteSnackbar from '../components/SuccessWriteSnackbar.vue';
 import TimesheetTable from '../components/TimesheetTable.vue';
 export default {
     components: { TimesheetTable },
@@ -62,6 +68,8 @@ export default {
             editedItem: {},
             deleteDialog: false,
             snackbar: false,
+            succSnackbar: false,
+            path: '',
         };
     },
     components: {
@@ -69,6 +77,7 @@ export default {
         EditDialog,
         DeleteDialog,
         FailedDeleteSnackbar,
+        SuccessWriteSnackbar,
     },
     async mounted() {
         await this.getData();
@@ -81,8 +90,12 @@ export default {
                 this.client = data;
             });
         },
-        exportToFile() {
-            ipcRenderer.invoke('exportToFile', this.$route.params.id);
+        async exportToFile() {
+            this.path = await ipcRenderer.invoke(
+                'exportToFile',
+                this.$route.params.id
+            );
+            this.succSnackbar = true;
         },
         openEditDialog(item) {
             this.dialog = true;
