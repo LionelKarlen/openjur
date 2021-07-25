@@ -34,8 +34,8 @@ export default {
 
     data: () => ({}),
     mounted() {
-		this.$router.push('/settings');
-	},
+        this.$router.push('/settings');
+    },
 };
 </script>
 

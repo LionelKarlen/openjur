@@ -21,15 +21,14 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 console.log('STARTING DB');
-// let dbpath = path.join(process.resourcesPath,"src","res", "db.sqlite");
-// let dbpath=path.join(__dirname,"resources","src","res","db.sqlite");
-let dbpath=path.join(path.dirname(process.execPath),"resources","src","res","db.sqlite");
+let dbpath = path.join(process.resourcesPath, 'defaultFiles', 'db.sqlite');
 console.log(dbpath);
 var knex = require('knex')({
     client: 'sqlite3',
     connection: {
-        filename:
-            isDevelopment?'/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.sqlite':dbpath,
+        filename: isDevelopment
+            ? '/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.sqlite'
+            : dbpath,
     },
 });
 
@@ -61,10 +60,6 @@ async function createWindow() {
         win.once('ready-to-show', () => {
             console.log('start');
             win.show();
-            let clients = knex.select('*').from('Clients');
-            clients.then(function (data) {
-                console.log(data);
-            });
         });
     }
 }
@@ -113,8 +108,11 @@ ipcMain.handle('exportToFile', async (event, data) => {
         });
     let entries = await calculateTable(times);
     let total = 0;
-    for (const entry of entries) {
-        total += entry.Amount;
+    for (let i = 0; i < entries.length; i++) {
+        total += entries[i].Amount;
+        entries[i].Date = new Date(entries[i].Date * 1000)
+            .toISOString()
+            .substring(0, 10);
     }
     let settings = await getSettings();
     console.log(settings);

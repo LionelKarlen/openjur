@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-text-field v-model="MWST" label="MWST"> </v-text-field>
+        <v-text-field v-model="MWST" label="MWST" suffix="%"> </v-text-field>
         <v-file-input
             truncate-length="50"
             accept=".docx"
