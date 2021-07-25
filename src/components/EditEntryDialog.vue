@@ -11,7 +11,7 @@
                 <v-form>
                     <v-container>
                         <v-row>
-                            <v-col cols="3">
+                            <v-col>
                                 <!-- <v-date-picker v-model="picker">
                                 </v-date-picker> -->
                                 <v-menu

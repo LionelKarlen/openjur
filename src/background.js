@@ -21,11 +21,15 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 console.log('STARTING DB');
+// let dbpath = path.join(process.resourcesPath,"src","res", "db.sqlite");
+// let dbpath=path.join(__dirname,"resources","src","res","db.sqlite");
+let dbpath=path.join(path.dirname(process.execPath),"resources","src","res","db.sqlite");
+console.log(dbpath);
 var knex = require('knex')({
     client: 'sqlite3',
     connection: {
         filename:
-            '/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.sqlite',
+            isDevelopment?'/home/lionel/Documents/programming/Web/openjur/openjur/src/res/test.sqlite':dbpath,
     },
 });
 

@@ -11,7 +11,7 @@
                 <v-form>
                     <v-container>
                         <v-row>
-                            <v-col cols="3">
+                            <v-col>
                                 <v-text-field
                                     label="Name"
                                     v-model="name"
