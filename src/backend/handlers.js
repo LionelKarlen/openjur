@@ -32,17 +32,23 @@ export default function registerHandlers(knex) {
                 ClientID: `${data}`,
             });
         let entries = await calculateTable(times);
-        let total = 0;
+        let clientTotal = 0;
         for (let i = 0; i < entries.length; i++) {
-            total += entries[i].Amount;
+            clientTotal += entries[i].Amount;
             entries[i].Date = formatDate(entries[i].Date);
         }
+        let client = await getClientByID(data);
         let settings = await getSettings();
         console.log(settings);
+        let date = formatDate(new Date(Date.now()).getTime() / 1000);
         let obj = {
+            date: date,
             entries: entries,
-            client: entries[0].Client,
-            total: total + total * (settings.MWST / 100),
+            clientName: client.Name,
+            clientAddress: client.Address,
+            mwst: `${settings.MWST}%`,
+            total: clientTotal + clientTotal * (settings.MWST / 100),
+            clientTotal: clientTotal,
         };
         console.log(obj);
         return writeToFile(obj, settings);
@@ -71,7 +77,7 @@ export default function registerHandlers(knex) {
         });
         let p = `${path.join(
             path.dirname(settings.TemplateFile),
-            params.client
+            params.clientName
         )}.docx`;
         fs.writeFileSync(p, buf);
         return p;
