@@ -1,25 +1,11 @@
 import { ipcMain } from 'electron';
 import Docxtemplater from 'docxtemplater';
+import { formatDate, generateID, sortByName } from './utils';
 var pizzip = require('pizzip');
 var fs = require('fs');
 const path = require('path');
 
 export default function registerHandlers(knex) {
-    /// UTILS
-    function generateID() {
-        return Math.round(new Date(Date.now()).valueOf() / 100);
-    }
-
-    function compare(a, b) {
-        if (a.Name < b.Name) {
-            return -1;
-        }
-        if (a.Name > b.Name) {
-            return 1;
-        }
-        return 0;
-    }
-
     /// CALCULATE TABLE
     ipcMain.handle('calculateTable', async (event, data) => {
         return calculateTable(data);
@@ -49,9 +35,7 @@ export default function registerHandlers(knex) {
         let total = 0;
         for (let i = 0; i < entries.length; i++) {
             total += entries[i].Amount;
-            entries[i].Date = new Date(entries[i].Date * 1000)
-                .toISOString()
-                .substring(0, 10);
+            entries[i].Date = formatDate(entries[i].Date);
         }
         let settings = await getSettings();
         console.log(settings);
@@ -170,7 +154,7 @@ export default function registerHandlers(knex) {
     /// CLIENTS
     ipcMain.handle('getClients', async () => {
         let clients = await knex.select('*').from('Clients');
-        return clients.sort(compare);
+        return clients.sort(sortByName);
     });
 
     ipcMain.handle('getClientByID', async (event, data) => {
@@ -229,7 +213,7 @@ export default function registerHandlers(knex) {
     /// USERS
     ipcMain.handle('getUsers', async () => {
         let users = await knex.select('*').from('Users');
-        return users.sort(compare);
+        return users.sort(sortByName);
     });
 
     ipcMain.handle('getUserByID', async (event, data) => {

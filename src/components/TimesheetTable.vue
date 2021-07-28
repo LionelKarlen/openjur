@@ -39,6 +39,7 @@
 import DeleteDialog from './DeleteDialog.vue';
 import EditEntryDialog from './EditEntryDialog.vue';
 const { ipcRenderer } = require('electron');
+import { formatDate } from '../backend/utils';
 export default {
     components: { EditEntryDialog, DeleteDialog },
     name: 'TimesheetTable',
@@ -132,9 +133,7 @@ export default {
             ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
                 let entries = await ipcRenderer.invoke('calculateTable', data);
                 for (var entry of entries) {
-                    entry.formattedDate = new Date(entry.Date * 1000)
-                        .toISOString()
-                        .substring(0, 10);
+                    entry.formattedDate = formatDate(entry.Date);
                 }
                 this.entries = entries;
                 console.log(this.entries);
