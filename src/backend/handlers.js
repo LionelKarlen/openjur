@@ -5,8 +5,19 @@ var fs = require('fs');
 const path = require('path');
 
 export default function registerHandlers(knex) {
+    /// UTILS
     function generateID() {
         return Math.round(new Date(Date.now()).valueOf() / 100);
+    }
+
+    function compare(a, b) {
+        if (a.Name < b.Name) {
+            return -1;
+        }
+        if (a.Name > b.Name) {
+            return 1;
+        }
+        return 0;
     }
 
     /// CALCULATE TABLE
@@ -159,7 +170,7 @@ export default function registerHandlers(knex) {
     /// CLIENTS
     ipcMain.handle('getClients', async () => {
         let clients = await knex.select('*').from('Clients');
-        return clients;
+        return clients.sort(compare);
     });
 
     ipcMain.handle('getClientByID', async (event, data) => {
@@ -218,7 +229,7 @@ export default function registerHandlers(knex) {
     /// USERS
     ipcMain.handle('getUsers', async () => {
         let users = await knex.select('*').from('Users');
-        return users;
+        return users.sort(compare);
     });
 
     ipcMain.handle('getUserByID', async (event, data) => {
