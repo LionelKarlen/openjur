@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 import Docxtemplater from 'docxtemplater';
 import { formatDate, generateID, sortByName } from './utils';
 var pizzip = require('pizzip');
@@ -292,10 +292,9 @@ export default function registerHandlers(knex) {
     });
 
     /// INVOICES
-    async function getInvoices() {
-        return await knex.select('*').from('Invoices');
-    }
-
+    ipcMain.handle('getInvoicesByClientID', async (event, data) => {
+        return await getInvoicesByClientID(data);
+    });
     async function getInvoicesByClientID(id) {
         return await knex
             .select('*')
@@ -308,4 +307,8 @@ export default function registerHandlers(knex) {
     async function addInvoice(data) {
         return await knex('Invoices').insert(data);
     }
+
+    ipcMain.handle('openFile', async (event, data) => {
+        shell.openPath(data);
+    });
 }

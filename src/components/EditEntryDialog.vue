@@ -101,7 +101,6 @@
 
 <script>
 const { ipcRenderer } = require('electron');
-import { formatDate } from '../backend/utils';
 export default {
     name: 'EditEntryDialog',
     props: ['dialog', 'editedItem', 'isEdit'],
