@@ -40,9 +40,9 @@ export default function registerHandlers(knex) {
         let client = await getClientByID(data);
         let settings = await getSettings();
         console.log(settings);
-        let date = formatDate(new Date(Date.now()).getTime() / 1000);
+        let date = new Date(Date.now()).getTime() / 1000;
         let obj = {
-            date: date,
+            date: formatDate(date),
             entries: entries,
             clientName: client.Name,
             clientAddress: client.Address,
@@ -51,10 +51,26 @@ export default function registerHandlers(knex) {
             clientTotal: clientTotal,
         };
         console.log(obj);
-        return writeToFile(obj, settings);
+        let p = `${path.join(
+            path.dirname(settings.TemplateFile),
+            settings.InvoiceID.toString()
+        )}.docx`;
+        let success = writeToFile(obj, settings, p);
+        if (success) {
+            let invobj = {
+                ID: settings.InvoiceID,
+                ClientID: client.ID,
+                Path: p,
+                Date: date,
+            };
+            addInvoice(invobj);
+            settings.InvoiceID++;
+            setSettings(settings);
+        }
+        return success;
     });
 
-    function writeToFile(params, settings) {
+    function writeToFile(params, settings, p) {
         var content = fs.readFileSync(settings.TemplateFile, 'binary');
         var zip = new pizzip(content);
         var doc;
@@ -75,10 +91,6 @@ export default function registerHandlers(knex) {
         var buf = doc.getZip().generate({
             type: 'nodebuffer',
         });
-        let p = `${path.join(
-            path.dirname(settings.TemplateFile),
-            params.clientName
-        )}.docx`;
         fs.writeFileSync(p, buf);
         return p;
     }
@@ -94,8 +106,12 @@ export default function registerHandlers(knex) {
     }
 
     ipcMain.handle('setSettings', async (event, data) => {
-        await knex('Settings').first().update(data);
+        return await setSettings(data);
     });
+
+    async function setSettings(data) {
+        return await knex('Settings').first().update(data);
+    }
 
     /// TIMES
     ipcMain.handle('setTimeByID', async (event, data) => {
@@ -274,4 +290,22 @@ export default function registerHandlers(knex) {
             return true;
         }
     });
+
+    /// INVOICES
+    async function getInvoices() {
+        return await knex.select('*').from('Invoices');
+    }
+
+    async function getInvoicesByClientID(id) {
+        return await knex
+            .select('*')
+            .from('Invoices')
+            .where({
+                ClientID: `${id}`,
+            });
+    }
+
+    async function addInvoice(data) {
+        return await knex('Invoices').insert(data);
+    }
 }
