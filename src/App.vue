@@ -11,7 +11,7 @@
 
             <template v-slot:extension>
                 <v-tabs align-with-title>
-                    <v-tab to="/">Home</v-tab>
+                    <!-- <v-tab to="/">Home</v-tab> -->
                     <v-tab to="/clients">Clients</v-tab>
                     <v-tab to="/users">Users</v-tab>
                     <v-tab to="/times">Times</v-tab>
@@ -33,7 +33,9 @@ export default {
     name: 'App',
 
     data: () => ({}),
-    mounted() {},
+    mounted() {
+        this.$router.push('/settings');
+    },
 };
 </script>
 
