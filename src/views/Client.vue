@@ -24,6 +24,13 @@
         <v-btn depressed color="primary" @click="exportToFile">
             Export to File
         </v-btn>
+        <v-row class="rm-m mt-5">
+            <invoice-card
+                v-for="item in invoices"
+                :key="item.iD"
+                :invoice="item"
+            />
+        </v-row>
         <edit-dialog
             :dialog="dialog"
             :isEdit="true"
@@ -56,6 +63,7 @@ const { ipcRenderer } = require('electron');
 import DeleteDialog from '../components/DeleteDialog.vue';
 import EditDialog from '../components/EditDialog.vue';
 import FailedDeleteSnackbar from '../components/FailedDeleteSnackbar.vue';
+import InvoiceCard from '../components/InvoiceCard.vue';
 import SuccessWriteSnackbar from '../components/SuccessWriteSnackbar.vue';
 import TimesheetTable from '../components/TimesheetTable.vue';
 export default {
@@ -70,6 +78,7 @@ export default {
             snackbar: false,
             succSnackbar: false,
             path: '',
+            invoices: [],
         };
     },
     components: {
@@ -78,9 +87,11 @@ export default {
         DeleteDialog,
         FailedDeleteSnackbar,
         SuccessWriteSnackbar,
+        InvoiceCard,
     },
     async mounted() {
         await this.getData();
+        await this.getInvoices();
     },
     methods: {
         async getData() {
@@ -96,6 +107,7 @@ export default {
                 this.$route.params.id
             );
             this.succSnackbar = true;
+            await this.getData();
         },
         openEditDialog(item) {
             this.dialog = true;
@@ -114,8 +126,20 @@ export default {
             };
             this.getData();
         },
+        async getInvoices() {
+            ipcRenderer
+                .invoke('getInvoicesByClientID', this.$route.params.id)
+                .then((data) => {
+                    console.log(data);
+                    this.invoices = data;
+                });
+        },
     },
 };
 </script>
 
-<style></style>
+<style scoped>
+.rm-m {
+    margin: 0px;
+}
+</style>
