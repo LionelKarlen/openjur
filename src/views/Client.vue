@@ -107,6 +107,7 @@ export default {
                 this.$route.params.id
             );
             this.succSnackbar = true;
+            await this.getData();
         },
         openEditDialog(item) {
             this.dialog = true;

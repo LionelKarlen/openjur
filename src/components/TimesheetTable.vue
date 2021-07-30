@@ -12,7 +12,7 @@
         >
             <template v-slot:[`group.header`]="{ group, isOpen, toggle }">
                 <th colspan="6">
-                    <v-icon @click="toggle" :ref="group" v-if="group != ''">{{
+                    <v-icon @click="toggle" :ref="group" v-if="group !== ''">{{
                         !isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up'
                     }}</v-icon>
                     {{ group }}

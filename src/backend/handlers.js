@@ -30,6 +30,7 @@ export default function registerHandlers(knex) {
             .from('Times')
             .where({
                 ClientID: `${data}`,
+                InvoiceID: null,
             });
         let entries = await calculateTable(times);
         let clientTotal = 0;
@@ -64,6 +65,14 @@ export default function registerHandlers(knex) {
                 Date: date,
             };
             addInvoice(invobj);
+            await knex('Times')
+                .where({
+                    ClientID: `${client.ID}`,
+                    InvoiceID: null,
+                })
+                .update({
+                    InvoiceID: settings.InvoiceID,
+                });
             settings.InvoiceID++;
             setSettings(settings);
         }
@@ -133,6 +142,7 @@ export default function registerHandlers(knex) {
     });
 
     ipcMain.handle('getTimesByClientID', async (event, data) => {
+        await validateInvoices();
         return await getTimesByClientID(data);
     });
 
@@ -147,6 +157,7 @@ export default function registerHandlers(knex) {
     }
 
     ipcMain.handle('getTimesByUserID', async (event, data) => {
+        await validateInvoices();
         return await getTimesByUserID(data);
     });
 
@@ -292,6 +303,11 @@ export default function registerHandlers(knex) {
     });
 
     /// INVOICES
+
+    async function getInvoices() {
+        return await knex.select('*').from('Invoices');
+    }
+
     ipcMain.handle('getInvoicesByClientID', async (event, data) => {
         return await getInvoicesByClientID(data);
     });
@@ -306,6 +322,34 @@ export default function registerHandlers(knex) {
 
     async function addInvoice(data) {
         return await knex('Invoices').insert(data);
+    }
+
+    async function validateInvoices() {
+        let invoices = await getInvoices();
+        for (const invoice of invoices) {
+            fs.stat(invoice.Path, async (err, stat) => {
+                console.log(err.code);
+                if (err.code == 'ENOENT') {
+                    await knex
+                        .select('*')
+                        .from('Times')
+                        .where({
+                            InvoiceID: invoice.ID,
+                        })
+                        .update({
+                            InvoiceID: null,
+                        });
+                    await knex
+                        .select('*')
+                        .from('Invoices')
+                        .where({
+                            ID: invoice.ID,
+                        })
+                        .del();
+                }
+            });
+        }
+        return true;
     }
 
     ipcMain.handle('openFile', async (event, data) => {
