@@ -142,7 +142,7 @@ export default function registerHandlers(knex) {
     });
 
     ipcMain.handle('getTimesByClientID', async (event, data) => {
-        await validateInvoices();
+        await validateInvoices(data);
         return await getTimesByClientID(data);
     });
 
@@ -157,7 +157,6 @@ export default function registerHandlers(knex) {
     }
 
     ipcMain.handle('getTimesByUserID', async (event, data) => {
-        await validateInvoices();
         return await getTimesByUserID(data);
     });
 
@@ -303,11 +302,6 @@ export default function registerHandlers(knex) {
     });
 
     /// INVOICES
-
-    async function getInvoices() {
-        return await knex.select('*').from('Invoices');
-    }
-
     ipcMain.handle('getInvoicesByClientID', async (event, data) => {
         return await getInvoicesByClientID(data);
     });
@@ -324,8 +318,8 @@ export default function registerHandlers(knex) {
         return await knex('Invoices').insert(data);
     }
 
-    async function validateInvoices() {
-        let invoices = await getInvoices();
+    async function validateInvoices(id) {
+        let invoices = await getInvoicesByClientID(id);
         for (const invoice of invoices) {
             fs.stat(invoice.Path, async (err, stat) => {
                 console.log(err.code);
