@@ -21,11 +21,10 @@
             :user="true"
             :editID="this.user.ID"
         />
-        <edit-dialog
+        <user-dialog
             :dialog="dialog"
             :isEdit="true"
             :editedItem="editedItem"
-            :isUser="true"
             @updateDialogStatus="updateDialogStatus"
         />
         <delete-dialog
@@ -49,6 +48,7 @@ import EditDialog from '../components/EditDialog.vue';
 import FailedDeleteSnackbar from '../components/FailedDeleteSnackbar.vue';
 const { ipcRenderer } = require('electron');
 import TimesheetTable from '../components/TimesheetTable.vue';
+import UserDialog from '../components/UserDialog.vue';
 export default {
     name: 'User',
     data() {
@@ -66,6 +66,7 @@ export default {
         EditDialog,
         DeleteDialog,
         FailedDeleteSnackbar,
+        UserDialog,
     },
     async mounted() {
         await this.getData();

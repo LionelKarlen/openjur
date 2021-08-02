@@ -3,7 +3,7 @@
         <v-card>
             <v-card-title>
                 <span class="text-h5">{{
-                    isEdit ? 'Edit Entry' : 'New Entry'
+                    isEdit ? `Edit ${name}` : 'New Entry'
                 }}</span>
             </v-card-title>
 
@@ -17,11 +17,9 @@
                                     v-model="name"
                                 ></v-text-field>
                                 <v-text-field
-                                    v-if="!isUser"
                                     label="Address"
-                                    v-model="other"
+                                    v-model="address"
                                 ></v-text-field>
-                                <v-data-table v-else> </v-data-table>
                             </v-col>
                         </v-row>
                     </v-container>
@@ -43,13 +41,11 @@
 const { ipcRenderer } = require('electron');
 export default {
     name: 'EditDialog',
-    props: ['dialog', 'editedItem', 'isEdit', 'isUser'],
+    props: ['dialog', 'editedItem', 'isEdit'],
     data() {
         return {
             name: '',
             address: '',
-            amount: 0,
-            other: null,
         };
     },
     methods: {
@@ -60,21 +56,14 @@ export default {
             console.log(this.editedItem);
             let obj = {
                 Name: this.name,
-                Address: !this.isUser && this.other != null ? this.other : '',
-                Amount: this.isUser ? this.other : null,
+                Address: this.address != null ? this.address : '',
                 ID: this.isEdit ? this.editedItem.ID : null,
             };
             console.log(obj);
             if (this.isEdit) {
-                await ipcRenderer.invoke(
-                    this.isUser ? 'setUserByID' : 'setClientByID',
-                    obj
-                );
+                await ipcRenderer.invoke('setClientByID', obj);
             } else {
-                await ipcRenderer.invoke(
-                    this.isUser ? 'addUser' : 'addClient',
-                    obj
-                );
+                await ipcRenderer.invoke('addClient', obj);
             }
             this.$emit('updateDialogStatus', false);
         },
@@ -83,15 +72,10 @@ export default {
         dialog: async function (newVal, oldVal) {
             if (newVal) {
                 this.name = this.editedItem.Name;
-                if (this.isUser) {
-                    this.other = this.editedItem.Amount;
-                } else {
-                    this.other = this.editedItem.Address;
-                }
+                this.address = this.editedItem.Address;
             } else {
                 this.name = '';
                 this.address = '';
-                this.amount = 0;
             }
         },
     },

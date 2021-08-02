@@ -14,11 +14,14 @@ export default function registerHandlers(knex) {
     async function calculateTable(data) {
         let entries = data;
         for (let i = 0; i < entries.length; i++) {
-            var user = await getUserByID(entries[i].UserID);
-            var client = await getClientByID(entries[i].ClientID);
-            entries[i].Amount = entries[i].Hours * user.Amount;
-            entries[i].User = user.Name;
-            entries[i].Client = client.Name;
+            if (entries[i].InvoiceID == null) {
+                var user = await getUserByID(entries[i].UserID);
+                var client = await getClientByID(entries[i].ClientID);
+                var amount = await getAmount(client.ID, user.ID);
+                entries[i].Amount = entries[i].Hours * amount;
+                entries[i].User = user.Name;
+                entries[i].Client = client.Name;
+            }
         }
         return entries;
     }
@@ -348,5 +351,53 @@ export default function registerHandlers(knex) {
 
     ipcMain.handle('openFile', async (event, data) => {
         shell.openPath(data);
+    });
+
+    /// AMOUNTS
+    ipcMain.handle('getAmountsByUserID', async (event, data) => {
+        return await getAmountsByUserID(data);
+    });
+
+    async function getAmountsByUserID(UserID) {
+        let obj = await knex
+            .select('*')
+            .from('Wages')
+            .where({
+                UserID: `${UserID}`,
+            });
+        for (var entry of obj) {
+            let name = await getClientByID(entry.ClientID);
+            entry.Client = name.Name;
+        }
+        return obj;
+    }
+
+    async function getAmount(ClientID, UserID) {
+        let obj = await knex
+            .select('*')
+            .from('Wages')
+            .where({
+                ClientID: `${ClientID}`,
+                UserID: `${UserID}`,
+            });
+        if (obj.length > 0) {
+            return obj[0].Amount;
+        }
+        return null;
+    }
+
+    ipcMain.handle('setWagesByUserID', async (event, data) => {
+        for (const entry of data) {
+            await knex
+                .select('*')
+                .from('Wages')
+                .where({
+                    ClientID: `${entry.ClientID}`,
+                    UserID: `${entry.UserID}`,
+                })
+                .update({
+                    Amount: Number(entry.Amount),
+                });
+        }
     });
 }

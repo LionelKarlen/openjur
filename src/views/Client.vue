@@ -31,11 +31,10 @@
                 :invoice="item"
             />
         </v-row>
-        <edit-dialog
+        <client-dialog
             :dialog="dialog"
             :isEdit="true"
             :editedItem="editedItem"
-            :isUser="false"
             @updateDialogStatus="updateDialogStatus"
         />
         <delete-dialog
@@ -61,7 +60,7 @@
 <script>
 const { ipcRenderer } = require('electron');
 import DeleteDialog from '../components/DeleteDialog.vue';
-import EditDialog from '../components/EditDialog.vue';
+import ClientDialog from '../components/ClientDialog.vue';
 import FailedDeleteSnackbar from '../components/FailedDeleteSnackbar.vue';
 import InvoiceCard from '../components/InvoiceCard.vue';
 import SuccessWriteSnackbar from '../components/SuccessWriteSnackbar.vue';
@@ -83,11 +82,12 @@ export default {
     },
     components: {
         TimesheetTable,
-        EditDialog,
+        // EditDialog,
         DeleteDialog,
         FailedDeleteSnackbar,
         SuccessWriteSnackbar,
         InvoiceCard,
+        ClientDialog,
     },
     async mounted() {
         await this.getData();
