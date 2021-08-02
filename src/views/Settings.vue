@@ -7,7 +7,43 @@
             v-model="templateFile"
             label="Template File"
         ></v-file-input>
-        <v-btn text color="primary" @click="save()"> SAVE </v-btn>
+        <v-form v-model="valid">
+            <v-row class="pl-4" align="center" justify="center">
+                <v-text-field
+                    v-model="list"
+                    label="New List entry"
+                    :rules="[rules.split, rules.notnull]"
+                    :validate-on-blur="false"
+                ></v-text-field>
+                <v-btn
+                    text
+                    color="primary"
+                    @click="addEntry()"
+                    :disabled="!valid"
+                >
+                    ADD
+                </v-btn>
+            </v-row>
+        </v-form>
+
+        <v-sheet
+            v-if="listEntries.length > 0"
+            max-height="200"
+            class="overflow-scroll"
+        >
+            <v-list flat>
+                <v-list-item-group v-model="selectedItem" color="primary">
+                    <v-list-item v-for="(item, i) in listEntries" :key="i">
+                        <v-list-item-content @click="deleteEntry(i)">
+                            <v-list-item-title
+                                v-text="item"
+                            ></v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-list-item-group>
+            </v-list>
+        </v-sheet>
+        <v-btn text color="primary" @click="save()" class="mt-5"> SAVE </v-btn>
     </div>
 </template>
 
@@ -19,17 +55,40 @@ export default {
         return {
             MWST: null,
             templateFile: [],
+            list: '',
+            listEntries: [],
+            selectedItem: null,
+            rules: {
+                split: (value) => {
+                    const pattern = /[%]/g;
+                    return !pattern.test(value) || 'No % Symbols.';
+                },
+                notnull: (value) => value.length > 0 || 'No empty strings',
+            },
+            valid: false,
         };
     },
     async mounted() {
         this.getData();
     },
     methods: {
+        addEntry() {
+            this.listEntries.push(this.list);
+            let s = this.listEntries.join('%');
+            console.log(s);
+            this.list = '';
+        },
+        deleteEntry(i) {
+            console.log(i);
+            this.listEntries.splice(i, 1);
+            this.selectedItem = null;
+        },
         async save() {
             console.log(this.templateFile);
             let obj = {
                 TemplateFile: this.templateFile.path,
                 MWST: this.MWST,
+                Suggestions: this.listEntries.join('%'),
             };
             ipcRenderer.invoke('setSettings', obj);
         },
@@ -38,9 +97,17 @@ export default {
             console.log(entries);
             this.MWST = entries.MWST;
             this.templateFile = [new File([], entries.TemplateFile)];
+            this.listEntries =
+                entries.Suggestions != null
+                    ? entries.Suggestions.split('%')
+                    : [];
         },
     },
 };
 </script>
 
-<style></style>
+<style scoped>
+.overflow-scroll {
+    overflow-y: scroll;
+}
+</style>
