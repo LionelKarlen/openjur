@@ -86,6 +86,126 @@
                             </v-date-picker>
                         </v-menu>
                     </v-row>
+                    <v-data-table
+                        :headers="headers"
+                        :items="extraCharges"
+                        :items-per-page="-1"
+                        hide-default-footer
+                    >
+                        <template v-slot:[`item.Actions`]="{ item }">
+                            <v-icon small @click.stop="deleteDialog(item)">
+                                mdi-delete
+                            </v-icon>
+                        </template>
+                        <template v-slot:[`item.Amount`]="props">
+                            <v-edit-dialog
+                                :return-value.sync="props.item.Amount"
+                                @save="saveEditDialog"
+                                @open="openEditDialog"
+                            >
+                                {{ props.item.Amount }}
+                                <template v-slot:input>
+                                    <v-text-field
+                                        v-model="props.item.Amount"
+                                        :rules="[onlyNumbers]"
+                                        label="Edit"
+                                        single-line
+                                    ></v-text-field>
+                                </template>
+                            </v-edit-dialog>
+                        </template>
+                        <template v-slot:[`item.Charge`]="props">
+                            <v-edit-dialog
+                                :return-value.sync="props.item.Charge"
+                                @save="saveEditDialog"
+                                @open="openEditDialog"
+                            >
+                                {{ props.item.Charge }}
+                                <template v-slot:input>
+                                    <v-text-field
+                                        v-model="props.item.Charge"
+                                        :rules="[notNull]"
+                                        label="Edit"
+                                        single-line
+                                    ></v-text-field>
+                                </template>
+                            </v-edit-dialog>
+                        </template>
+                        <template v-slot:top>
+                            <v-toolbar flat>
+                                <v-toolbar-title>Extra Charges</v-toolbar-title>
+                                <v-spacer></v-spacer>
+                                <v-dialog
+                                    v-model="dialog"
+                                    max-width="500px"
+                                    persistent
+                                >
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            dark
+                                            class="mb-2"
+                                            v-bind="attrs"
+                                            v-on="on"
+                                        >
+                                            Add Charge
+                                        </v-btn>
+                                    </template>
+                                    <v-card>
+                                        <v-card-title>
+                                            <span class="text-h5"
+                                                >Add Charge</span
+                                            >
+                                        </v-card-title>
+
+                                        <v-card-text>
+                                            <v-container>
+                                                <v-row>
+                                                    <v-col
+                                                        cols="12"
+                                                        sm="6"
+                                                        md="4"
+                                                    >
+                                                        <v-text-field
+                                                            v-model="
+                                                                editedItem.Charge
+                                                            "
+                                                            label="Charge name"
+                                                        ></v-text-field>
+
+                                                        <v-text-field
+                                                            v-model="
+                                                                editedItem.Amount
+                                                            "
+                                                            label="Amount"
+                                                        ></v-text-field>
+                                                    </v-col>
+                                                </v-row>
+                                            </v-container>
+                                        </v-card-text>
+
+                                        <v-card-actions>
+                                            <v-spacer></v-spacer>
+                                            <v-btn
+                                                color="blue darken-1"
+                                                text
+                                                @click="closeDialog"
+                                            >
+                                                Cancel
+                                            </v-btn>
+                                            <v-btn
+                                                color="blue darken-1"
+                                                text
+                                                @click="saveDialog"
+                                            >
+                                                Save
+                                            </v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-dialog>
+                            </v-toolbar>
+                        </template>
+                    </v-data-table>
                 </v-col>
             </v-row>
         </v-container>
@@ -103,7 +223,8 @@ export default {
     name: 'Invoice',
     data() {
         return {
-            valid: false,
+            dialog: false,
+            editedItem: {},
             entries: [],
             sorted: [],
             fromDate: null,
@@ -112,6 +233,32 @@ export default {
             toMenu: false,
             client: {},
             clients: [],
+            extraCharges: [
+                {
+                    Charge: 'Copies',
+                    Amount: 10,
+                },
+            ],
+            onlyNumbers: (value) => {
+                const pattern = /[0-9]/;
+                return pattern.test(value) || 'Only Numbers';
+            },
+            notNull: (value) => value.length > 0,
+            headers: [
+                {
+                    text: 'Charge',
+                    value: 'Charge',
+                },
+                {
+                    text: 'Amount',
+                    value: 'Amount',
+                },
+                {
+                    text: 'Actions',
+                    value: 'Actions',
+                    align: 'right',
+                },
+            ],
         };
     },
     async mounted() {
@@ -130,8 +277,15 @@ export default {
                 this.client.ID
             );
             this.sorted = this.entries.sort((a, b) => {
-                a.Date - b.Date;
+                if (a.Date < b.Date) {
+                    return -1;
+                }
+                if (a.Date > b.Date) {
+                    return 1;
+                }
+                return 0;
             });
+            console.log(this.sorted);
             this.fromDate = new Date(this.sorted[0].Date * 1000)
                 .toISOString()
                 .substring(0, 10);
@@ -141,15 +295,47 @@ export default {
                 .toISOString()
                 .substring(0, 10);
         },
+        closeDialog() {
+            this.dialog = false;
+            this.editedItem = {};
+        },
+        saveDialog() {
+            this.dialog = false;
+            console.log(this.editedItem);
+            this.extraCharges.push({
+                Charge: this.editedItem.Charge,
+                Amount: Number(this.editedItem.Amount),
+            });
+            this.editedItem = {};
+        },
+        openDialog() {
+            this.dialog = true;
+        },
+        deleteDialog(item) {
+            this.extraCharges.splice(this.extraCharges.indexOf(item), 1);
+        },
         close() {
             this.$router.push(`/client/${this.$route.params.id}`);
         },
+        saveEditDialog() {
+            console.log('save edit Dialog');
+        },
+        closeEditDialog() {
+            console.log('close edit dialog');
+        },
+        openEditDialog() {
+            console.log('openEditDialog');
+        },
         async save() {
             console.log(this.editedItem);
-            let exportOptions = {};
+            let exportOptions = {
+                FromDate: new Date(this.fromDate).getTime() / 1000,
+                ToDate: new Date(this.toDate).getTime() / 1000,
+                ClientID: this.client.ID,
+                ExtraCharges: this.extraCharges,
+            };
             console.log(exportOptions);
             ipcRenderer.invoke('exportToFile', exportOptions);
-            this.$emit('updateDialogStatus', false);
         },
     },
 };

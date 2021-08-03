@@ -32,27 +32,43 @@ export default function registerHandlers(knex) {
             .select('*')
             .from('Times')
             .where({
-                ClientID: `${data}`,
+                ClientID: `${data.ClientID}`,
                 InvoiceID: null,
-            });
+            })
+            .andWhere('Date', '>=', data.FromDate)
+            .andWhere('Date', '<=', data.ToDate);
+        console.log(times);
         let entries = await calculateTable(times);
         let clientTotal = 0;
         for (let i = 0; i < entries.length; i++) {
             clientTotal += entries[i].Amount;
             entries[i].Date = formatDate(entries[i].Date);
         }
-        let client = await getClientByID(data);
+        let chargeTotal = 0;
+        for (let i = 0; i < data.ExtraCharges.length; i++) {
+            chargeTotal += data.ExtraCharges[i].Amount;
+        }
+        let client = await getClientByID(data.ClientID);
         let settings = await getSettings();
         console.log(settings);
         let date = new Date(Date.now()).getTime() / 1000;
+        let subTotal = clientTotal + chargeTotal;
+        let mwstTotal = subTotal * (settings.MWST / 100);
         let obj = {
+            fromDate: formatDate(data.FromDate),
+            toDate: formatDate(data.ToDate),
             date: formatDate(date),
             entries: entries,
+            extraCharges: data.ExtraCharges,
             clientName: client.Name,
             clientAddress: client.Address,
             mwst: `${settings.MWST}%`,
-            total: clientTotal + clientTotal * (settings.MWST / 100),
+            subTotal: subTotal,
+            mwstTotal: mwstTotal,
+            total: subTotal + mwstTotal,
             clientTotal: clientTotal,
+            chargeTotal: chargeTotal,
+            invoiceID: settings.InvoiceID,
         };
         console.log(obj);
         let p = `${path.join(

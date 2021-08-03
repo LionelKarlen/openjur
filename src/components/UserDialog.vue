@@ -24,7 +24,6 @@
                                 >
                                     <template v-slot:[`item.Amount`]="props">
                                         <v-edit-dialog
-                                            persistent
                                             :return-value.sync="
                                                 props.item.Amount
                                             "
@@ -33,13 +32,20 @@
                                         >
                                             {{ props.item.Amount }}
                                             <template v-slot:input>
-                                                <v-text-field
-                                                    v-model="props.item.Amount"
-                                                    :rules="[onlyNumbers]"
-                                                    label="Edit"
-                                                    single-line
-                                                ></v-text-field>
+                                                <v-form ref="form">
+                                                    <v-text-field
+                                                        v-model="
+                                                            props.item.Amount
+                                                        "
+                                                        :rules="[onlyNumbers]"
+                                                        label="Edit"
+                                                        single-line
+                                                    ></v-text-field>
+                                                </v-form>
                                             </template>
+                                            <!-- <v-btn :disabled="!this.$refs.form.validate()" @click="saveEditDialog">
+												Save
+											</v-btn> -->
                                         </v-edit-dialog>
                                     </template>
                                 </v-data-table>
