@@ -102,12 +102,13 @@ export default {
             });
         },
         async exportToFile() {
-            this.path = await ipcRenderer.invoke(
-                'exportToFile',
-                this.$route.params.id
-            );
-            this.succSnackbar = true;
-            await this.getData();
+            // this.path = await ipcRenderer.invoke(
+            //     'exportToFile',
+            //     this.$route.params.id
+            // );
+            // this.succSnackbar = true;
+            // await this.getData();
+            this.$router.push(`/invoice/${this.$route.params.id}`);
         },
         openEditDialog(item) {
             this.dialog = true;
