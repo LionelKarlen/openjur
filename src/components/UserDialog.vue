@@ -12,11 +12,19 @@
                     <v-container>
                         <v-row>
                             <v-col>
-                                <v-text-field
-                                    label="Name"
-                                    v-model="name"
-                                ></v-text-field>
+                                <v-row>
+                                    <v-text-field
+                                        label="Name"
+                                        v-model="name"
+                                    ></v-text-field>
+                                    <v-text-field
+                                        label="Basic Amount"
+                                        hint="Used to determine the amount for new clients"
+                                        v-model="basicAmount"
+                                    ></v-text-field>
+                                </v-row>
                                 <v-data-table
+                                    v-if="isEdit"
                                     :headers="headers"
                                     :items="amounts"
                                     :items-per-page="-1"
@@ -75,6 +83,7 @@ export default {
         return {
             name: '',
             amounts: [],
+            basicAmount: null,
             headers: [
                 {
                     text: 'Client',
@@ -104,6 +113,7 @@ export default {
                 );
                 console.log(this.amounts);
             }
+            this.basicAmount = this.editedItem.Amount;
         },
         openEditDialog() {
             this.editDialog = true;
@@ -119,11 +129,12 @@ export default {
             let obj = {
                 Name: this.name,
                 ID: this.isEdit ? this.editedItem.ID : null,
+                Amount: this.basicAmount,
             };
             console.log(obj);
             if (this.isEdit) {
                 await ipcRenderer.invoke('setUserByID', obj);
-                await ipcRenderer.invoke('setWagesByUserID', this.amounts);
+                await ipcRenderer.invoke('setWages', this.amounts);
             } else {
                 await ipcRenderer.invoke('addUser', obj);
                 // await ipcRenderer.invoke('addWagesByUserID', this.amounts);

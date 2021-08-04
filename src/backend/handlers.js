@@ -204,9 +204,13 @@ export default function registerHandlers(knex) {
 
     /// CLIENTS
     ipcMain.handle('getClients', async () => {
+        return await getClients();
+    });
+
+    async function getClients() {
         let clients = await knex.select('*').from('Clients');
         return clients.sort(sortByName);
-    });
+    }
 
     ipcMain.handle('getClientByID', async (event, data) => {
         return getClientByID(data);
@@ -231,6 +235,17 @@ export default function registerHandlers(knex) {
         };
         console.log(entries);
         await knex('Clients').insert(entries);
+        let users = await getUsers();
+        let wages = [];
+        for (const entry of users) {
+            let obj = {
+                ClientID: entries.ID,
+                UserID: entry.ID,
+                Amount: entry.Amount,
+            };
+            wages.push(obj);
+        }
+        await addWages(wages);
     });
 
     ipcMain.handle('setClientByID', async (event, data) => {
@@ -257,15 +272,24 @@ export default function registerHandlers(knex) {
                     ID: `${data}`,
                 })
                 .del();
+            await knex('Wages')
+                .where({
+                    ClientID: `${data}`,
+                })
+                .del();
             return true;
         }
     });
 
     /// USERS
     ipcMain.handle('getUsers', async () => {
+        return await getUsers();
+    });
+
+    async function getUsers() {
         let users = await knex.select('*').from('Users');
         return users.sort(sortByName);
-    });
+    }
 
     ipcMain.handle('getUserByID', async (event, data) => {
         return getUserByID(data);
@@ -290,6 +314,17 @@ export default function registerHandlers(knex) {
         };
         console.log(entries);
         await knex('Users').insert(entries);
+        let clients = await getClients();
+        let wages = [];
+        for (const client of clients) {
+            let obj = {
+                ClientID: client.ID,
+                UserID: entries.ID,
+                Amount: entries.Amount,
+            };
+            wages.push(obj);
+        }
+        await addWages(wages);
     });
 
     ipcMain.handle('setUserByID', async (event, data) => {
@@ -314,6 +349,11 @@ export default function registerHandlers(knex) {
             await knex('Users')
                 .where({
                     ID: `${data}`,
+                })
+                .del();
+            await knex('Wages')
+                .where({
+                    UserID: `${data}`,
                 })
                 .del();
             return true;
@@ -402,7 +442,7 @@ export default function registerHandlers(knex) {
         return null;
     }
 
-    ipcMain.handle('setWagesByUserID', async (event, data) => {
+    ipcMain.handle('setWages', async (event, data) => {
         for (const entry of data) {
             await knex
                 .select('*')
@@ -416,4 +456,10 @@ export default function registerHandlers(knex) {
                 });
         }
     });
+
+    async function addWages(data) {
+        for (const entry of data) {
+            await knex('Wages').insert(entry);
+        }
+    }
 }

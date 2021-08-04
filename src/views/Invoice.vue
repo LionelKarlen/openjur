@@ -233,12 +233,7 @@ export default {
             toMenu: false,
             client: {},
             clients: [],
-            extraCharges: [
-                {
-                    Charge: 'Copies',
-                    Amount: 10,
-                },
-            ],
+            extraCharges: [],
             onlyNumbers: (value) => {
                 const pattern = /[0-9]/;
                 return pattern.test(value) || 'Only Numbers';
