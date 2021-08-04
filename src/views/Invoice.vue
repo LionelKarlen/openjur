@@ -4,11 +4,11 @@
             <v-row>
                 <v-col>
                     <v-select
-                        v-model="client"
-                        :items="clients"
+                        v-model="selectedPerson"
+                        :items="people"
                         item-text="Name"
                         item-value="ID"
-                        label="Client"
+                        :label="this.isUser ? 'User' : 'Client'"
                     />
                     <v-row>
                         <v-menu
@@ -87,6 +87,7 @@
                         </v-menu>
                     </v-row>
                     <v-data-table
+                        v-if="!isUser"
                         :headers="headers"
                         :items="extraCharges"
                         :items-per-page="-1"
@@ -221,6 +222,7 @@
 const { ipcRenderer } = require('electron');
 export default {
     name: 'Invoice',
+    props: ['isUser'],
     data() {
         return {
             dialog: false,
@@ -231,8 +233,8 @@ export default {
             toDate: null,
             fromMenu: false,
             toMenu: false,
-            client: {},
-            clients: [],
+            selectedPerson: {},
+            people: [],
             extraCharges: [],
             onlyNumbers: (value) => {
                 const pattern = /[0-9]/;
@@ -263,32 +265,36 @@ export default {
     },
     methods: {
         async getData() {
-            this.clients = await ipcRenderer.invoke('getClients');
-            this.client = this.clients.filter((item) => {
+            this.people = this.isUser
+                ? await ipcRenderer.invoke('getUsers')
+                : await ipcRenderer.invoke('getClients');
+            this.selectedPerson = this.people.filter((item) => {
                 return item.ID == this.$route.params.id;
             })[0];
-            this.entries = await ipcRenderer.invoke(
-                'getTimesByClientID',
-                this.client.ID
-            );
-            this.sorted = this.entries.sort((a, b) => {
-                if (a.Date < b.Date) {
-                    return -1;
-                }
-                if (a.Date > b.Date) {
-                    return 1;
-                }
-                return 0;
-            });
-            console.log(this.sorted);
-            this.fromDate = new Date(this.sorted[0].Date * 1000)
-                .toISOString()
-                .substring(0, 10);
-            this.toDate = new Date(
-                this.sorted[this.sorted.length - 1].Date * 1000
-            )
-                .toISOString()
-                .substring(0, 10);
+            if (!this.isUser) {
+                this.entries = await ipcRenderer.invoke(
+                    'getTimesByClientID',
+                    this.selectedPerson.ID
+                );
+                this.sorted = this.entries.sort((a, b) => {
+                    if (a.Date < b.Date) {
+                        return -1;
+                    }
+                    if (a.Date > b.Date) {
+                        return 1;
+                    }
+                    return 0;
+                });
+                console.log(this.sorted);
+                this.fromDate = new Date(this.sorted[0].Date * 1000)
+                    .toISOString()
+                    .substring(0, 10);
+                this.toDate = new Date(
+                    this.sorted[this.sorted.length - 1].Date * 1000
+                )
+                    .toISOString()
+                    .substring(0, 10);
+            }
         },
         closeDialog() {
             this.dialog = false;
@@ -326,11 +332,15 @@ export default {
             let exportOptions = {
                 FromDate: new Date(this.fromDate).getTime() / 1000,
                 ToDate: new Date(this.toDate).getTime() / 1000,
-                ClientID: this.client.ID,
+                ID: this.selectedPerson.ID,
                 ExtraCharges: this.extraCharges,
             };
             console.log(exportOptions);
-            ipcRenderer.invoke('exportToFile', exportOptions);
+            if (this.isUser) {
+                ipcRenderer.invoke('exportUserToFile', exportOptions);
+            } else {
+                ipcRenderer.invoke('exportClientToFile', exportOptions);
+            }
         },
     },
 };

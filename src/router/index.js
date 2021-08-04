@@ -61,8 +61,17 @@ const routes = [
     },
     {
         path: '/invoice/:id',
-        name: 'Invoice',
         component: Invoice,
+        props: {
+            isUser: false,
+        },
+    },
+    {
+        path: '/wage/:id',
+        component: Invoice,
+        props: {
+            isUser: true,
+        },
     },
 ];
 

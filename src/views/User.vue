@@ -21,6 +21,7 @@
             :user="true"
             :editID="this.user.ID"
         />
+        <v-btn depressed color="primary" @click="exportToFile"> Export </v-btn>
         <user-dialog
             :dialog="dialog"
             :isEdit="true"
@@ -95,6 +96,9 @@ export default {
                 Address: '',
             };
             this.getData();
+        },
+        exportToFile() {
+            this.$router.push(`/wage/${this.$route.params.id}`);
         },
     },
 };

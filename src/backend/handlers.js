@@ -11,10 +11,10 @@ export default function registerHandlers(knex) {
         return calculateTable(data);
     });
 
-    async function calculateTable(data) {
+    async function calculateTable(data, override = false) {
         let entries = data;
         for (let i = 0; i < entries.length; i++) {
-            if (entries[i].InvoiceID == null) {
+            if (entries[i].InvoiceID == null || override) {
                 var user = await getUserByID(entries[i].UserID);
                 var client = await getClientByID(entries[i].ClientID);
                 var amount = await getAmount(client.ID, user.ID);
@@ -27,18 +27,57 @@ export default function registerHandlers(knex) {
     }
 
     /// EXPORT TO FILE
-    ipcMain.handle('exportToFile', async (event, data) => {
+    ipcMain.handle('exportUserToFile', async (event, data) => {
         let times = await knex
             .select('*')
             .from('Times')
             .where({
-                ClientID: `${data.ClientID}`,
+                UserID: `${data.ID}`,
+            })
+            .andWhere('Date', '>=', data.FromDate)
+            .andWhere('Date', '<=', data.ToDate);
+        console.log(times);
+        let entries = await calculateTable(times, true);
+        let total = 0;
+        for (let i = 0; i < entries.length; i++) {
+            total += entries[i].Amount;
+            entries[i].Date = formatDate(entries[i].Date);
+        }
+        let settings = await getSettings();
+        let user = await getUserByID(data.ID);
+        let date = new Date(Date.now()).getTime() / 1000;
+        let obj = {
+            fromDate: formatDate(data.FromDate),
+            toDate: formatDate(data.ToDate),
+            date: formatDate(date),
+            entries: entries,
+            userName: user.Name,
+            total: total,
+        };
+        console.log(obj);
+        let p = `${path.join(
+            path.dirname(settings.ClientTemplateFile),
+            settings.InvoiceID.toString()
+        )}.docx`;
+        let success = writeToFile(obj, settings, p, true);
+        if (success) {
+            settings.InvoiceID++;
+            setSettings(settings);
+        }
+    });
+
+    ipcMain.handle('exportClientToFile', async (event, data) => {
+        let times = await knex
+            .select('*')
+            .from('Times')
+            .where({
+                ClientID: `${data.ID}`,
                 InvoiceID: null,
             })
             .andWhere('Date', '>=', data.FromDate)
             .andWhere('Date', '<=', data.ToDate);
         console.log(times);
-        let entries = await calculateTable(times);
+        let entries = await calculateTable(times, true);
         let clientTotal = 0;
         for (let i = 0; i < entries.length; i++) {
             clientTotal += entries[i].Amount;
@@ -48,7 +87,7 @@ export default function registerHandlers(knex) {
         for (let i = 0; i < data.ExtraCharges.length; i++) {
             chargeTotal += data.ExtraCharges[i].Amount;
         }
-        let client = await getClientByID(data.ClientID);
+        let client = await getClientByID(data.ID);
         let settings = await getSettings();
         console.log(settings);
         let date = new Date(Date.now()).getTime() / 1000;
@@ -72,10 +111,10 @@ export default function registerHandlers(knex) {
         };
         console.log(obj);
         let p = `${path.join(
-            path.dirname(settings.TemplateFile),
+            path.dirname(settings.ClientTemplateFile),
             settings.InvoiceID.toString()
         )}.docx`;
-        let success = writeToFile(obj, settings, p);
+        let success = writeToFile(obj, settings, p, false);
         if (success) {
             let invobj = {
                 ID: settings.InvoiceID,
@@ -98,8 +137,12 @@ export default function registerHandlers(knex) {
         return success;
     });
 
-    function writeToFile(params, settings, p) {
-        var content = fs.readFileSync(settings.TemplateFile, 'binary');
+    function writeToFile(params, settings, p, isUser = false) {
+        let path = isUser
+            ? settings.UserTemplateFile
+            : settings.ClientTemplateFile;
+        console.log(path);
+        var content = fs.readFileSync(path, 'binary');
         var zip = new pizzip(content);
         var doc;
         try {

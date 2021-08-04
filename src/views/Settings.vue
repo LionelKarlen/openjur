@@ -4,8 +4,14 @@
         <v-file-input
             truncate-length="50"
             accept=".docx"
-            v-model="templateFile"
-            label="Template File"
+            v-model="clientTemplateFile"
+            label="Client Template File"
+        ></v-file-input>
+        <v-file-input
+            truncate-length="50"
+            accept=".docx"
+            v-model="userTemplateFile"
+            label="User Template File"
         ></v-file-input>
         <v-form v-model="valid">
             <v-row class="pl-4" align="center" justify="center">
@@ -54,7 +60,8 @@ export default {
     data() {
         return {
             MWST: null,
-            templateFile: [],
+            clientTemplateFile: [],
+            userTemplateFile: [],
             list: '',
             listEntries: [],
             selectedItem: null,
@@ -84,9 +91,10 @@ export default {
             this.selectedItem = null;
         },
         async save() {
-            console.log(this.templateFile);
+            console.log(this.clientTemplateFile);
             let obj = {
-                TemplateFile: this.templateFile.path,
+                ClientTemplateFile: this.clientTemplateFile.path,
+                UserTemplateFile: this.userTemplateFile.path,
                 MWST: this.MWST,
                 Suggestions: this.listEntries.join('%'),
             };
@@ -96,7 +104,10 @@ export default {
             let entries = await ipcRenderer.invoke('getSettings');
             console.log(entries);
             this.MWST = entries.MWST;
-            this.templateFile = [new File([], entries.TemplateFile)];
+            this.clientTemplateFile = [
+                new File([], entries.ClientTemplateFile),
+            ];
+            this.userTemplateFile = [new File([], entries.UserTemplateFile)];
             this.listEntries =
                 entries.Suggestions != null
                     ? entries.Suggestions.split('%')
