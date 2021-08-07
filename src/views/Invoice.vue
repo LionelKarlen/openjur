@@ -294,6 +294,16 @@ export default {
                 )
                     .toISOString()
                     .substring(0, 10);
+                let settings = await ipcRenderer.invoke('getSettings');
+                this.extraCharges =
+                    settings.Charges.length > 0
+                        ? settings.Charges.split('%').map((val) => {
+                              return {
+                                  Charge: val,
+                                  Amount: 0,
+                              };
+                          })
+                        : [];
             }
         },
         closeDialog() {

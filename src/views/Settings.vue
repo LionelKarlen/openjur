@@ -1,6 +1,9 @@
 <template>
     <div>
+        <h2>MWST</h2>
         <v-text-field v-model="MWST" label="MWST" suffix="%"> </v-text-field>
+        <v-divider />
+        <h2>Templates</h2>
         <v-file-input
             truncate-length="50"
             accept=".docx"
@@ -13,10 +16,12 @@
             v-model="userTemplateFile"
             label="User Template File"
         ></v-file-input>
-        <v-form v-model="valid">
+        <v-divider />
+        <h2>Common Tasks</h2>
+        <v-form v-model="taskValid">
             <v-row class="pl-4" align="center" justify="center">
                 <v-text-field
-                    v-model="list"
+                    v-model="taskModel"
                     label="New List entry"
                     :rules="[rules.split, rules.notnull]"
                     :validate-on-blur="false"
@@ -24,8 +29,8 @@
                 <v-btn
                     text
                     color="primary"
-                    @click="addEntry()"
-                    :disabled="!valid"
+                    @click="addTaskEntry()"
+                    :disabled="!taskValid"
                 >
                     ADD
                 </v-btn>
@@ -33,14 +38,14 @@
         </v-form>
 
         <v-sheet
-            v-if="listEntries.length > 0"
+            v-if="taskList.length > 0"
             max-height="200"
             class="overflow-scroll"
         >
             <v-list flat>
-                <v-list-item-group v-model="selectedItem" color="primary">
-                    <v-list-item v-for="(item, i) in listEntries" :key="i">
-                        <v-list-item-content @click="deleteEntry(i)">
+                <v-list-item-group v-model="selectedTaskItem" color="primary">
+                    <v-list-item v-for="(item, i) in taskList" :key="i">
+                        <v-list-item-content @click="deleteTaskEntry(i)">
                             <v-list-item-title
                                 v-text="item"
                             ></v-list-item-title>
@@ -49,6 +54,46 @@
                 </v-list-item-group>
             </v-list>
         </v-sheet>
+
+        <v-divider />
+        <h2>Common Extra Charges</h2>
+        <v-form v-model="chargeValid">
+            <v-row class="pl-4" align="center" justify="center">
+                <v-text-field
+                    v-model="chargeModel"
+                    label="New List entry"
+                    :rules="[rules.split, rules.notnull]"
+                    :validate-on-blur="false"
+                ></v-text-field>
+                <v-btn
+                    text
+                    color="primary"
+                    @click="addChargeEntry()"
+                    :disabled="!chargeValid"
+                >
+                    ADD
+                </v-btn>
+            </v-row>
+        </v-form>
+
+        <v-sheet
+            v-if="chargeList.length > 0"
+            max-height="200"
+            class="overflow-scroll"
+        >
+            <v-list flat>
+                <v-list-item-group v-model="selectedChargeItem" color="primary">
+                    <v-list-item v-for="(item, i) in chargeList" :key="i">
+                        <v-list-item-content @click="deleteChargeEntry(i)">
+                            <v-list-item-title
+                                v-text="item"
+                            ></v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-list-item-group>
+            </v-list>
+        </v-sheet>
+        <v-divider />
         <v-btn text color="primary" @click="save()" class="mt-5"> SAVE </v-btn>
     </div>
 </template>
@@ -62,9 +107,14 @@ export default {
             MWST: null,
             clientTemplateFile: [],
             userTemplateFile: [],
-            list: '',
-            listEntries: [],
-            selectedItem: null,
+            taskModel: '',
+            taskList: [],
+            selectedTaskItem: null,
+            taskValid: false,
+            chargeModel: '',
+            chargeList: [],
+            selectedChargeItem: null,
+            chargeValid: false,
             rules: {
                 split: (value) => {
                     const pattern = /[%]/g;
@@ -72,23 +122,28 @@ export default {
                 },
                 notnull: (value) => value.length > 0 || 'No empty strings',
             },
-            valid: false,
         };
     },
     async mounted() {
         this.getData();
     },
     methods: {
-        addEntry() {
-            this.listEntries.push(this.list);
-            let s = this.listEntries.join('%');
-            console.log(s);
+        addTaskEntry() {
+            this.taskList.push(this.list);
             this.list = '';
         },
-        deleteEntry(i) {
+        deleteTaskEntry(i) {
             console.log(i);
-            this.listEntries.splice(i, 1);
-            this.selectedItem = null;
+            this.taskList.splice(i, 1);
+            this.selectedTaskItem = null;
+        },
+        addChargeEntry() {
+            this.chargeList.push(this.chargeModel);
+            this.chargeModel = '';
+        },
+        deleteChargeEntry(i) {
+            this.chargeList.splice(i, 1);
+            this.selectedChargeItem = null;
         },
         async save() {
             console.log(this.clientTemplateFile);
@@ -96,7 +151,8 @@ export default {
                 ClientTemplateFile: this.clientTemplateFile.path,
                 UserTemplateFile: this.userTemplateFile.path,
                 MWST: this.MWST,
-                Suggestions: this.listEntries.join('%'),
+                Suggestions: this.taskList.join('%'),
+                Charges: this.chargeList.join('%'),
             };
             ipcRenderer.invoke('setSettings', obj);
         },
@@ -108,10 +164,12 @@ export default {
                 new File([], entries.ClientTemplateFile),
             ];
             this.userTemplateFile = [new File([], entries.UserTemplateFile)];
-            this.listEntries =
-                entries.Suggestions != null
+            this.taskList =
+                entries.Suggestions.length > 0
                     ? entries.Suggestions.split('%')
                     : [];
+            this.chargeList =
+                entries.Charges.length > 0 ? entries.Charges.split('%') : [];
         },
     },
 };
