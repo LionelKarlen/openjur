@@ -146,7 +146,7 @@ export default function registerHandlers(knex) {
         var zip = new pizzip(content);
         var doc;
         try {
-            doc = new Docxtemplater(zip);
+            doc = new Docxtemplater(zip, { linebreaks: true });
         } catch (error) {
             console.log(error);
         }
@@ -204,7 +204,6 @@ export default function registerHandlers(knex) {
     });
 
     ipcMain.handle('getTimesByClientID', async (event, data) => {
-        await validateInvoices(data);
         return await getTimesByClientID(data);
     });
 
@@ -405,6 +404,7 @@ export default function registerHandlers(knex) {
 
     /// INVOICES
     ipcMain.handle('getInvoicesByClientID', async (event, data) => {
+        await validateInvoices(data);
         return await getInvoicesByClientID(data);
     });
     async function getInvoicesByClientID(id) {

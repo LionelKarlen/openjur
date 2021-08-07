@@ -16,10 +16,10 @@
                                     label="Name"
                                     v-model="name"
                                 ></v-text-field>
-                                <v-text-field
+                                <v-textarea
                                     label="Address"
                                     v-model="address"
-                                ></v-text-field>
+                                ></v-textarea>
                             </v-col>
                         </v-row>
                     </v-container>

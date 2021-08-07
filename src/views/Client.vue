@@ -4,7 +4,9 @@
             <v-row class="align-center">
                 <v-col>
                     <h1>{{ client.Name }}</h1>
-                    <h3>{{ client.Address }}</h3>
+                    <h3 v-for="(i, index) in addressLines" :key="index">
+                        {{ i }}
+                    </h3>
                 </v-col>
                 <v-spacer></v-spacer>
                 <v-icon class="mr-2" @click="openEditDialog(client)">
@@ -78,6 +80,7 @@ export default {
             succSnackbar: false,
             path: '',
             invoices: [],
+            addressLines: null,
         };
     },
     components: {
@@ -99,6 +102,7 @@ export default {
             ipcRenderer.invoke('getClientByID', id).then((data) => {
                 console.log(data);
                 this.client = data;
+                this.addressLines = this.client.Address.split('\n');
             });
         },
         async exportToFile() {
