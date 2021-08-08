@@ -61,6 +61,13 @@ export default function registerHandlers(knex) {
         )}.docx`;
         let success = writeToFile(obj, settings, p, true);
         if (success) {
+            let invobj = {
+                ID: settings.InvoiceID,
+                UserID: user.ID,
+                Path: p,
+                Date: date,
+            };
+            addInvoice(invobj);
             settings.InvoiceID++;
             setSettings(settings);
         }
@@ -416,12 +423,25 @@ export default function registerHandlers(knex) {
             });
     }
 
+    ipcMain.handle('getInvoicesByUserID', async (event, data) => {
+        await validateInvoices(data, true);
+        return await getInvoicesByUserID(data);
+    });
+    async function getInvoicesByUserID(id) {
+        return await knex
+            .select('*')
+            .from('Invoices')
+            .where({ UserID: `${id}` });
+    }
+
     async function addInvoice(data) {
         return await knex('Invoices').insert(data);
     }
 
-    async function validateInvoices(id) {
-        let invoices = await getInvoicesByClientID(id);
+    async function validateInvoices(id, isUser = false) {
+        let invoices = isUser
+            ? await getInvoicesByUserID(id)
+            : await getInvoicesByClientID(id);
         for (const invoice of invoices) {
             fs.stat(invoice.Path, async (err, stat) => {
                 console.log(err.code);
