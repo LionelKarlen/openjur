@@ -5,6 +5,7 @@
                 this.alltimes != true ? this.headers : this.alltimesHeaders
             "
             :items="this.entries"
+            sort-by="Date"
             group-by="InvoiceID"
             :group-desc="true"
             hide-default-footer

@@ -11,52 +11,119 @@ export default function registerHandlers(knex) {
         return calculateTable(data);
     });
 
-    async function calculateTable(data) {
+    async function calculateTable(data, override = false) {
         let entries = data;
         for (let i = 0; i < entries.length; i++) {
-            var user = await getUserByID(entries[i].UserID);
-            var client = await getClientByID(entries[i].ClientID);
-            entries[i].Amount = entries[i].Hours * user.Amount;
-            entries[i].User = user.Name;
-            entries[i].Client = client.Name;
+            if (entries[i].InvoiceID == null || override) {
+                var user = await getUserByID(entries[i].UserID);
+                var client = await getClientByID(entries[i].ClientID);
+                var amount = await getAmount(client.ID, user.ID);
+                entries[i].Amount = entries[i].Hours * amount;
+                entries[i].User = user.Name;
+                entries[i].Client = client.Name;
+            }
         }
         return entries;
     }
 
     /// EXPORT TO FILE
-    ipcMain.handle('exportToFile', async (event, data) => {
+    ipcMain.handle('exportUserToFile', async (event, data) => {
         let times = await knex
             .select('*')
             .from('Times')
             .where({
-                ClientID: `${data}`,
+                UserID: `${data.ID}`,
+            })
+            .andWhere('Date', '>=', data.FromDate)
+            .andWhere('Date', '<=', data.ToDate);
+        console.log(times);
+        let entries = await calculateTable(times, true);
+        let total = 0;
+        for (let i = 0; i < entries.length; i++) {
+            total += entries[i].Amount;
+            entries[i].Date = formatDate(entries[i].Date);
+        }
+        let settings = await getSettings();
+        let user = await getUserByID(data.ID);
+        let date = new Date(Date.now()).getTime() / 1000;
+        let obj = {
+            fromDate: formatDate(data.FromDate),
+            toDate: formatDate(data.ToDate),
+            date: formatDate(date),
+            entries: entries,
+            userName: user.Name,
+            total: total,
+        };
+        console.log(obj);
+        let p = `${path.join(
+            path.dirname(settings.ClientTemplateFile),
+            'export',
+            settings.InvoiceID.toString()
+        )}.docx`;
+        let success = writeToFile(obj, settings, p, true);
+        if (success) {
+            let invobj = {
+                ID: settings.InvoiceID,
+                UserID: user.ID,
+                Path: p,
+                Date: date,
+            };
+            addInvoice(invobj);
+            settings.InvoiceID++;
+            setSettings(settings);
+        }
+    });
+
+    ipcMain.handle('exportClientToFile', async (event, data) => {
+        let times = await knex
+            .select('*')
+            .from('Times')
+            .where({
+                ClientID: `${data.ID}`,
                 InvoiceID: null,
-            });
-        let entries = await calculateTable(times);
+            })
+            .andWhere('Date', '>=', data.FromDate)
+            .andWhere('Date', '<=', data.ToDate);
+        console.log(times);
+        let entries = await calculateTable(times, true);
         let clientTotal = 0;
         for (let i = 0; i < entries.length; i++) {
             clientTotal += entries[i].Amount;
             entries[i].Date = formatDate(entries[i].Date);
         }
-        let client = await getClientByID(data);
+        let chargeTotal = 0;
+        for (let i = 0; i < data.ExtraCharges.length; i++) {
+            chargeTotal += data.ExtraCharges[i].Amount;
+        }
+        let client = await getClientByID(data.ID);
         let settings = await getSettings();
         console.log(settings);
         let date = new Date(Date.now()).getTime() / 1000;
+        let subTotal = clientTotal + chargeTotal;
+        let mwstTotal = subTotal * (settings.MWST / 100);
         let obj = {
+            fromDate: formatDate(data.FromDate),
+            toDate: formatDate(data.ToDate),
             date: formatDate(date),
             entries: entries,
+            extraCharges: data.ExtraCharges,
             clientName: client.Name,
             clientAddress: client.Address,
             mwst: `${settings.MWST}%`,
-            total: clientTotal + clientTotal * (settings.MWST / 100),
+            subTotal: subTotal,
+            mwstTotal: mwstTotal,
+            total: subTotal + mwstTotal,
             clientTotal: clientTotal,
+            chargeTotal: chargeTotal,
+            invoiceID: settings.InvoiceID,
         };
         console.log(obj);
         let p = `${path.join(
-            path.dirname(settings.TemplateFile),
+            path.dirname(settings.ClientTemplateFile),
+            'export',
             settings.InvoiceID.toString()
         )}.docx`;
-        let success = writeToFile(obj, settings, p);
+        let success = writeToFile(obj, settings, p, false);
         if (success) {
             let invobj = {
                 ID: settings.InvoiceID,
@@ -79,12 +146,16 @@ export default function registerHandlers(knex) {
         return success;
     });
 
-    function writeToFile(params, settings, p) {
-        var content = fs.readFileSync(settings.TemplateFile, 'binary');
+    function writeToFile(params, settings, p, isUser = false) {
+        let path = isUser
+            ? settings.UserTemplateFile
+            : settings.ClientTemplateFile;
+        console.log(path);
+        var content = fs.readFileSync(path, 'binary');
         var zip = new pizzip(content);
         var doc;
         try {
-            doc = new Docxtemplater(zip);
+            doc = new Docxtemplater(zip, { linebreaks: true });
         } catch (error) {
             console.log(error);
         }
@@ -142,7 +213,6 @@ export default function registerHandlers(knex) {
     });
 
     ipcMain.handle('getTimesByClientID', async (event, data) => {
-        await validateInvoices();
         return await getTimesByClientID(data);
     });
 
@@ -157,7 +227,6 @@ export default function registerHandlers(knex) {
     }
 
     ipcMain.handle('getTimesByUserID', async (event, data) => {
-        await validateInvoices();
         return await getTimesByUserID(data);
     });
 
@@ -186,9 +255,13 @@ export default function registerHandlers(knex) {
 
     /// CLIENTS
     ipcMain.handle('getClients', async () => {
+        return await getClients();
+    });
+
+    async function getClients() {
         let clients = await knex.select('*').from('Clients');
         return clients.sort(sortByName);
-    });
+    }
 
     ipcMain.handle('getClientByID', async (event, data) => {
         return getClientByID(data);
@@ -213,6 +286,17 @@ export default function registerHandlers(knex) {
         };
         console.log(entries);
         await knex('Clients').insert(entries);
+        let users = await getUsers();
+        let wages = [];
+        for (const entry of users) {
+            let obj = {
+                ClientID: entries.ID,
+                UserID: entry.ID,
+                Amount: entry.Amount,
+            };
+            wages.push(obj);
+        }
+        await addWages(wages);
     });
 
     ipcMain.handle('setClientByID', async (event, data) => {
@@ -239,15 +323,24 @@ export default function registerHandlers(knex) {
                     ID: `${data}`,
                 })
                 .del();
+            await knex('Wages')
+                .where({
+                    ClientID: `${data}`,
+                })
+                .del();
             return true;
         }
     });
 
     /// USERS
     ipcMain.handle('getUsers', async () => {
+        return await getUsers();
+    });
+
+    async function getUsers() {
         let users = await knex.select('*').from('Users');
         return users.sort(sortByName);
-    });
+    }
 
     ipcMain.handle('getUserByID', async (event, data) => {
         return getUserByID(data);
@@ -272,6 +365,17 @@ export default function registerHandlers(knex) {
         };
         console.log(entries);
         await knex('Users').insert(entries);
+        let clients = await getClients();
+        let wages = [];
+        for (const client of clients) {
+            let obj = {
+                ClientID: client.ID,
+                UserID: entries.ID,
+                Amount: entries.Amount,
+            };
+            wages.push(obj);
+        }
+        await addWages(wages);
     });
 
     ipcMain.handle('setUserByID', async (event, data) => {
@@ -298,17 +402,18 @@ export default function registerHandlers(knex) {
                     ID: `${data}`,
                 })
                 .del();
+            await knex('Wages')
+                .where({
+                    UserID: `${data}`,
+                })
+                .del();
             return true;
         }
     });
 
     /// INVOICES
-
-    async function getInvoices() {
-        return await knex.select('*').from('Invoices');
-    }
-
     ipcMain.handle('getInvoicesByClientID', async (event, data) => {
+        await validateInvoices(data);
         return await getInvoicesByClientID(data);
     });
     async function getInvoicesByClientID(id) {
@@ -320,12 +425,25 @@ export default function registerHandlers(knex) {
             });
     }
 
+    ipcMain.handle('getInvoicesByUserID', async (event, data) => {
+        await validateInvoices(data, true);
+        return await getInvoicesByUserID(data);
+    });
+    async function getInvoicesByUserID(id) {
+        return await knex
+            .select('*')
+            .from('Invoices')
+            .where({ UserID: `${id}` });
+    }
+
     async function addInvoice(data) {
         return await knex('Invoices').insert(data);
     }
 
-    async function validateInvoices() {
-        let invoices = await getInvoices();
+    async function validateInvoices(id, isUser = false) {
+        let invoices = isUser
+            ? await getInvoicesByUserID(id)
+            : await getInvoicesByClientID(id);
         for (const invoice of invoices) {
             fs.stat(invoice.Path, async (err, stat) => {
                 console.log(err.code);
@@ -355,4 +473,58 @@ export default function registerHandlers(knex) {
     ipcMain.handle('openFile', async (event, data) => {
         shell.openPath(data);
     });
+
+    /// AMOUNTS
+    ipcMain.handle('getAmountsByUserID', async (event, data) => {
+        return await getAmountsByUserID(data);
+    });
+
+    async function getAmountsByUserID(UserID) {
+        let obj = await knex
+            .select('*')
+            .from('Wages')
+            .where({
+                UserID: `${UserID}`,
+            });
+        for (var entry of obj) {
+            let name = await getClientByID(entry.ClientID);
+            entry.Client = name.Name;
+        }
+        return obj;
+    }
+
+    async function getAmount(ClientID, UserID) {
+        let obj = await knex
+            .select('*')
+            .from('Wages')
+            .where({
+                ClientID: `${ClientID}`,
+                UserID: `${UserID}`,
+            });
+        if (obj.length > 0) {
+            return obj[0].Amount;
+        }
+        return null;
+    }
+
+    ipcMain.handle('setWages', async (event, data) => {
+        for (const entry of data) {
+            await knex
+                .select('*')
+                .from('Wages')
+                .where({
+                    ClientID: `${entry.ClientID}`,
+                    UserID: `${entry.UserID}`,
+                })
+                .update({
+                    Amount: Number(entry.Amount),
+                });
+        }
+    });
+
+    async function addWages(data) {
+        for (const entry of data) {
+            await knex('Wages').insert(entry);
+        }
+    }
 }

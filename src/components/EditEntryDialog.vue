@@ -117,10 +117,15 @@ export default {
             user: {},
             users: [],
             text: '',
-            textPropose: ['Did stuff', 'Did other stuff'],
+            textPropose: [],
             hours: 0,
             menu: false,
         };
+    },
+    async mounted() {
+        let settings = await ipcRenderer.invoke('getSettings');
+        this.textPropose =
+            settings.Suggestions > 0 ? settings.Suggestions.split('%') : [];
     },
     methods: {
         close() {

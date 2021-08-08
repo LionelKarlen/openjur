@@ -21,11 +21,12 @@
             :user="true"
             :editID="this.user.ID"
         />
-        <edit-dialog
+        <v-btn depressed color="primary" @click="exportToFile"> Export </v-btn>
+        <!-- <v-btn depressed color="primary" @click="openFolder"> Open Folder</v-btn> -->
+        <user-dialog
             :dialog="dialog"
             :isEdit="true"
             :editedItem="editedItem"
-            :isUser="true"
             @updateDialogStatus="updateDialogStatus"
         />
         <delete-dialog
@@ -40,6 +41,13 @@
             :snackbar="snackbar"
             @closeSnackbar="snackbar = false"
         />
+        <v-row class="rm-m mt-5">
+            <invoice-card
+                v-for="item in invoices"
+                :key="item.iD"
+                :invoice="item"
+            />
+        </v-row>
     </div>
 </template>
 
@@ -49,6 +57,8 @@ import EditDialog from '../components/EditDialog.vue';
 import FailedDeleteSnackbar from '../components/FailedDeleteSnackbar.vue';
 const { ipcRenderer } = require('electron');
 import TimesheetTable from '../components/TimesheetTable.vue';
+import UserDialog from '../components/UserDialog.vue';
+import InvoiceCard from '../components/InvoiceCard.vue';
 export default {
     name: 'User',
     data() {
@@ -59,6 +69,7 @@ export default {
             editedItem: {},
             deleteDialog: false,
             snackbar: false,
+            invoices: [],
         };
     },
     components: {
@@ -66,6 +77,8 @@ export default {
         EditDialog,
         DeleteDialog,
         FailedDeleteSnackbar,
+        UserDialog,
+        InvoiceCard,
     },
     async mounted() {
         await this.getData();
@@ -77,6 +90,7 @@ export default {
                 console.log(data);
                 this.user = data;
             });
+            this.invoices = await ipcRenderer.invoke('getInvoicesByUserID', id);
         },
         openEditDialog(item) {
             this.editedItem = this.user;
@@ -94,6 +108,9 @@ export default {
                 Address: '',
             };
             this.getData();
+        },
+        exportToFile() {
+            this.$router.push(`/wage/${this.$route.params.id}`);
         },
     },
 };
