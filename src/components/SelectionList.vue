@@ -27,21 +27,37 @@
                 {{ entry.Name }}
             </v-list-item-content>
         </v-list-item>
-        <edit-dialog
+        <!-- <edit-dialog
             :dialog="dialog"
             :isEdit="false"
             :editedItem="editedItem"
             :isUser="isUser"
+            @updateDialogStatus="updateDialogStatus"
+        /> -->
+        <user-dialog
+            v-if="isUser"
+            :dialog="dialog"
+            :isEdit="false"
+            :editedItem="editedItem"
+            @updateDialogStatus="updateDialogStatus"
+        />
+        <client-dialog
+            v-else
+            :dialog="dialog"
+            :isEdit="false"
+            :editedItem="editedItem"
             @updateDialogStatus="updateDialogStatus"
         />
     </div>
 </template>
 
 <script>
+import ClientDialog from './ClientDialog.vue';
 import EditDialog from './EditDialog.vue';
+import UserDialog from './UserDialog.vue';
 const { ipcRenderer } = require('electron');
 export default {
-    components: { EditDialog },
+    components: { EditDialog, UserDialog, ClientDialog },
     name: 'SelectionList',
 
     props: ['invoke', 'baseroute', 'isUser'],

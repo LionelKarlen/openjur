@@ -4,7 +4,9 @@
             <v-row class="align-center">
                 <v-col>
                     <h1>{{ client.Name }}</h1>
-                    <h3>{{ client.Address }}</h3>
+                    <h3 v-for="(i, index) in addressLines" :key="index">
+                        {{ i }}
+                    </h3>
                 </v-col>
                 <v-spacer></v-spacer>
                 <v-icon class="mr-2" @click="openEditDialog(client)">
@@ -31,11 +33,10 @@
                 :invoice="item"
             />
         </v-row>
-        <edit-dialog
+        <client-dialog
             :dialog="dialog"
             :isEdit="true"
             :editedItem="editedItem"
-            :isUser="false"
             @updateDialogStatus="updateDialogStatus"
         />
         <delete-dialog
@@ -61,7 +62,7 @@
 <script>
 const { ipcRenderer } = require('electron');
 import DeleteDialog from '../components/DeleteDialog.vue';
-import EditDialog from '../components/EditDialog.vue';
+import ClientDialog from '../components/ClientDialog.vue';
 import FailedDeleteSnackbar from '../components/FailedDeleteSnackbar.vue';
 import InvoiceCard from '../components/InvoiceCard.vue';
 import SuccessWriteSnackbar from '../components/SuccessWriteSnackbar.vue';
@@ -79,15 +80,17 @@ export default {
             succSnackbar: false,
             path: '',
             invoices: [],
+            addressLines: null,
         };
     },
     components: {
         TimesheetTable,
-        EditDialog,
+        // EditDialog,
         DeleteDialog,
         FailedDeleteSnackbar,
         SuccessWriteSnackbar,
         InvoiceCard,
+        ClientDialog,
     },
     async mounted() {
         await this.getData();
@@ -99,15 +102,17 @@ export default {
             ipcRenderer.invoke('getClientByID', id).then((data) => {
                 console.log(data);
                 this.client = data;
+                this.addressLines = this.client.Address.split('\n');
             });
         },
         async exportToFile() {
-            this.path = await ipcRenderer.invoke(
-                'exportToFile',
-                this.$route.params.id
-            );
-            this.succSnackbar = true;
-            await this.getData();
+            // this.path = await ipcRenderer.invoke(
+            //     'exportToFile',
+            //     this.$route.params.id
+            // );
+            // this.succSnackbar = true;
+            // await this.getData();
+            this.$router.push(`/invoice/${this.$route.params.id}`);
         },
         openEditDialog(item) {
             this.dialog = true;
