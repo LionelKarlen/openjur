@@ -57,6 +57,7 @@ export default function registerHandlers(knex) {
         console.log(obj);
         let p = `${path.join(
             path.dirname(settings.ClientTemplateFile),
+            'export',
             settings.InvoiceID.toString()
         )}.docx`;
         let success = writeToFile(obj, settings, p, true);
@@ -119,6 +120,7 @@ export default function registerHandlers(knex) {
         console.log(obj);
         let p = `${path.join(
             path.dirname(settings.ClientTemplateFile),
+            'export',
             settings.InvoiceID.toString()
         )}.docx`;
         let success = writeToFile(obj, settings, p, false);
