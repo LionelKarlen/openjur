@@ -93,8 +93,8 @@ export default {
         ClientDialog,
     },
     async mounted() {
-        await this.getData();
         await this.getInvoices();
+        await this.getData();
     },
     methods: {
         async getData() {
