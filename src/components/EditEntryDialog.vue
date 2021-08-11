@@ -12,8 +12,6 @@
                     <v-container>
                         <v-row>
                             <v-col>
-                                <!-- <v-date-picker v-model="picker">
-                                </v-date-picker> -->
                                 <v-menu
                                     ref="menu"
                                     v-model="menu"
@@ -25,7 +23,7 @@
                                 >
                                     <template v-slot:activator="{ on, attrs }">
                                         <v-text-field
-                                            v-model="picker"
+                                            :value="pickerFormat(picker)"
                                             label="Date"
                                             prepend-icon="mdi-calendar"
                                             readonly
@@ -101,6 +99,7 @@
 
 <script>
 const { ipcRenderer } = require('electron');
+import { pickerFormat } from '../backend/utils';
 export default {
     name: 'EditEntryDialog',
     props: ['dialog', 'editedItem', 'isEdit'],
@@ -149,6 +148,7 @@ export default {
             }
             this.$emit('updateDialogStatus', false);
         },
+        pickerFormat,
     },
     watch: {
         dialog: async function (newVal, oldVal) {

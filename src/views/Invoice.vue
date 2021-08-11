@@ -22,7 +22,7 @@
                         >
                             <template v-slot:activator="{ on, attrs }">
                                 <v-text-field
-                                    v-model="fromDate"
+                                    :value="`${pickerFormat(fromDate)}`"
                                     label="From"
                                     prepend-icon="mdi-calendar"
                                     readonly
@@ -61,7 +61,7 @@
                         >
                             <template v-slot:activator="{ on, attrs }">
                                 <v-text-field
-                                    v-model="toDate"
+                                    :value="pickerFormat(toDate)"
                                     label="To"
                                     prepend-icon="mdi-calendar"
                                     readonly
@@ -220,6 +220,7 @@
 
 <script>
 const { ipcRenderer } = require('electron');
+import { pickerFormat } from '../backend/utils';
 export default {
     name: 'Invoice',
     props: ['isUser'],
@@ -352,6 +353,7 @@ export default {
                 ipcRenderer.invoke('exportClientToFile', exportOptions);
             }
         },
+        pickerFormat,
     },
 };
 </script>
