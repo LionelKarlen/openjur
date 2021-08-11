@@ -124,7 +124,9 @@ export default {
     async mounted() {
         let settings = await ipcRenderer.invoke('getSettings');
         this.textPropose =
-            settings.Suggestions > 0 ? settings.Suggestions.split('%') : [];
+            settings.Suggestions.length > 0
+                ? settings.Suggestions.split('%')
+                : [];
     },
     methods: {
         close() {
