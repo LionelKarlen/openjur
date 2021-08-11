@@ -14,6 +14,10 @@ export function generateID() {
     return Math.round(new Date(Date.now()).valueOf() / 100);
 }
 
+export function safeRound(value, decimals) {
+    return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+}
+
 function getLastname(str) {
     let pieces = str.split(' ');
     let lastname = pieces[pieces.length - 1];

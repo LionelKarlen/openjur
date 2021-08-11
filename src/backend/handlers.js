@@ -1,6 +1,6 @@
 import { ipcMain, shell } from 'electron';
 import Docxtemplater from 'docxtemplater';
-import { formatDate, generateID, sortByName } from './utils';
+import { formatDate, generateID, sortByName, safeRound } from './utils';
 var pizzip = require('pizzip');
 var fs = require('fs');
 const path = require('path');
@@ -100,7 +100,7 @@ export default function registerHandlers(knex) {
         console.log(settings);
         let date = new Date(Date.now()).getTime() / 1000;
         let subTotal = clientTotal + chargeTotal;
-        let mwstTotal = subTotal * (settings.MWST / 100);
+        let mwstTotal = safeRound(subTotal * (settings.MWST / 100), 1);
         let obj = {
             fromDate: formatDate(data.FromDate),
             toDate: formatDate(data.ToDate),
@@ -110,11 +110,11 @@ export default function registerHandlers(knex) {
             clientName: client.Name,
             clientAddress: client.Address,
             mwst: `${settings.MWST}%`,
-            subTotal: subTotal,
-            mwstTotal: mwstTotal,
-            total: subTotal + mwstTotal,
-            clientTotal: clientTotal,
-            chargeTotal: chargeTotal,
+            subTotal: subTotal.toFixed(2),
+            mwstTotal: mwstTotal.toFixed(2),
+            total: (subTotal + mwstTotal).toFixed(2),
+            clientTotal: clientTotal.toFixed(2),
+            chargeTotal: chargeTotal.toFixed(2),
             invoiceID: settings.InvoiceID,
         };
         console.log(obj);
@@ -449,6 +449,7 @@ export default function registerHandlers(knex) {
             : await getInvoicesByClientID(id);
         for (const invoice of invoices) {
             fs.stat(invoice.Path, async (err, stat) => {
+                if (err == null) return;
                 console.log(err.code);
                 if (err.code == 'ENOENT') {
                     await knex
