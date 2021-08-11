@@ -46,9 +46,9 @@ export default function registerHandlers(knex) {
         let settings = await getSettings();
         let user = await getUserByID(data.ID);
         let date = new Date(Date.now()).getTime() / 1000;
-		let extID = `${new Date(
-			date * 1000
-		).getFullYear()}${settings.InvoiceID.toString()}`
+        let extID = `${new Date(
+            date * 1000
+        ).getFullYear()}${settings.InvoiceID.toString()}`;
         let obj = {
             fromDate: formatDate(data.FromDate),
             toDate: formatDate(data.ToDate),
@@ -70,7 +70,7 @@ export default function registerHandlers(knex) {
                 UserID: user.ID,
                 Path: p,
                 Date: date,
-				ExtID: extID
+                ExtID: extID,
             };
             addInvoice(invobj);
             settings.InvoiceID++;
@@ -103,9 +103,9 @@ export default function registerHandlers(knex) {
         let settings = await getSettings();
         console.log(settings);
         let date = new Date(Date.now()).getTime() / 1000;
-		let extID = `${new Date(
-			date * 1000
-		).getFullYear()}${settings.InvoiceID.toString()}`
+        let extID = `${new Date(
+            date * 1000
+        ).getFullYear()}${settings.InvoiceID.toString()}`;
         let subTotal = clientTotal + chargeTotal;
         let mwstTotal = safeRound(subTotal * (settings.MWST / 100), 1);
         let obj = {
@@ -128,7 +128,7 @@ export default function registerHandlers(knex) {
         let p = `${path.join(
             path.dirname(settings.ClientTemplateFile),
             'export',
-			extID
+            extID
         )}.docx`;
         let success = writeToFile(obj, settings, p, false);
         if (success) {
@@ -137,7 +137,7 @@ export default function registerHandlers(knex) {
                 ClientID: client.ID,
                 Path: p,
                 Date: date,
-				ExtID: extID
+                ExtID: extID,
             };
             addInvoice(invobj);
             await knex('Times')
@@ -191,11 +191,15 @@ export default function registerHandlers(knex) {
 
     async function getSettings() {
         let entries = await knex('Settings').first();
-		if (entries.ClientTemplateFile==null) {
-			await setSettings({
-				ClientTemplateFile: path.join(process.resourcesPath, 'defaultFiles', 'template.docx')
-			})			
-		}
+        if (entries.ClientTemplateFile == null) {
+            await setSettings({
+                ClientTemplateFile: path.join(
+                    process.resourcesPath,
+                    'defaultFiles',
+                    'template.docx'
+                ),
+            });
+        }
         return entries;
     }
 
