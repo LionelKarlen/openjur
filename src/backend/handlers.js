@@ -121,7 +121,9 @@ export default function registerHandlers(knex) {
         let p = `${path.join(
             path.dirname(settings.ClientTemplateFile),
             'export',
-            settings.InvoiceID.toString()
+            `${new Date(
+                date * 1000
+            ).getFullYear()}${settings.InvoiceID.toString()}`
         )}.docx`;
         let success = writeToFile(obj, settings, p, false);
         if (success) {
@@ -143,6 +145,7 @@ export default function registerHandlers(knex) {
             settings.InvoiceID++;
             setSettings(settings);
         }
+        shell.openPath(p);
         return success;
     });
 
