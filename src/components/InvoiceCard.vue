@@ -4,7 +4,7 @@
             <v-list-item-content>
                 <div class="overline mb-1">{{ computedDate }}</div>
                 <v-list-item-title class="headline">
-                    {{ this.invoice.ID }}
+                    {{ this.invoice.ExtID }}
                 </v-list-item-title>
             </v-list-item-content>
         </v-list-item>
