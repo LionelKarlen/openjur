@@ -129,8 +129,8 @@ export default {
     },
     methods: {
         addTaskEntry() {
-            this.taskList.push(this.list);
-            this.list = '';
+            this.taskList.push(this.taskModel);
+            this.taskModel = '';
         },
         deleteTaskEntry(i) {
             console.log(i);

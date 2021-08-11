@@ -14,6 +14,10 @@ module.exports = {
 					{
 						from: 'src/res/template.docx',
 						to: 'defaultFiles/template.docx'
+					},
+					{
+						from: 'src/res/export/',
+						to: 'defaultFiles/export/'
 					}
 				],
 				appId: "ch.lionelkarlen.openjur",

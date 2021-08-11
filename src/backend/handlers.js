@@ -1,6 +1,6 @@
 import { ipcMain, shell } from 'electron';
 import Docxtemplater from 'docxtemplater';
-import { formatDate, generateID, sortByName } from './utils';
+import { formatDate, generateID, sortByName, safeRound } from './utils';
 var pizzip = require('pizzip');
 var fs = require('fs');
 const path = require('path');
@@ -46,6 +46,9 @@ export default function registerHandlers(knex) {
         let settings = await getSettings();
         let user = await getUserByID(data.ID);
         let date = new Date(Date.now()).getTime() / 1000;
+        let extID = `${new Date(
+            date * 1000
+        ).getFullYear()}${settings.InvoiceID.toString()}`;
         let obj = {
             fromDate: formatDate(data.FromDate),
             toDate: formatDate(data.ToDate),
@@ -58,7 +61,7 @@ export default function registerHandlers(knex) {
         let p = `${path.join(
             path.dirname(settings.ClientTemplateFile),
             'export',
-            settings.InvoiceID.toString()
+            extID
         )}.docx`;
         let success = writeToFile(obj, settings, p, true);
         if (success) {
@@ -67,6 +70,7 @@ export default function registerHandlers(knex) {
                 UserID: user.ID,
                 Path: p,
                 Date: date,
+                ExtID: extID,
             };
             addInvoice(invobj);
             settings.InvoiceID++;
@@ -99,8 +103,11 @@ export default function registerHandlers(knex) {
         let settings = await getSettings();
         console.log(settings);
         let date = new Date(Date.now()).getTime() / 1000;
+        let extID = `${new Date(
+            date * 1000
+        ).getFullYear()}${settings.InvoiceID.toString()}`;
         let subTotal = clientTotal + chargeTotal;
-        let mwstTotal = subTotal * (settings.MWST / 100);
+        let mwstTotal = safeRound(subTotal * (settings.MWST / 100), 1);
         let obj = {
             fromDate: formatDate(data.FromDate),
             toDate: formatDate(data.ToDate),
@@ -110,18 +117,18 @@ export default function registerHandlers(knex) {
             clientName: client.Name,
             clientAddress: client.Address,
             mwst: `${settings.MWST}%`,
-            subTotal: subTotal,
-            mwstTotal: mwstTotal,
-            total: subTotal + mwstTotal,
-            clientTotal: clientTotal,
-            chargeTotal: chargeTotal,
+            subTotal: subTotal.toFixed(2),
+            mwstTotal: mwstTotal.toFixed(2),
+            total: (subTotal + mwstTotal).toFixed(2),
+            clientTotal: clientTotal.toFixed(2),
+            chargeTotal: chargeTotal.toFixed(2),
             invoiceID: settings.InvoiceID,
         };
         console.log(obj);
         let p = `${path.join(
             path.dirname(settings.ClientTemplateFile),
             'export',
-            settings.InvoiceID.toString()
+            extID
         )}.docx`;
         let success = writeToFile(obj, settings, p, false);
         if (success) {
@@ -130,6 +137,7 @@ export default function registerHandlers(knex) {
                 ClientID: client.ID,
                 Path: p,
                 Date: date,
+                ExtID: extID,
             };
             addInvoice(invobj);
             await knex('Times')
@@ -143,6 +151,7 @@ export default function registerHandlers(knex) {
             settings.InvoiceID++;
             setSettings(settings);
         }
+        shell.openPath(p);
         return success;
     });
 
@@ -182,6 +191,15 @@ export default function registerHandlers(knex) {
 
     async function getSettings() {
         let entries = await knex('Settings').first();
+        if (entries.ClientTemplateFile == null) {
+            await setSettings({
+                ClientTemplateFile: path.join(
+                    process.resourcesPath,
+                    'defaultFiles',
+                    'template.docx'
+                ),
+            });
+        }
         return entries;
     }
 
@@ -446,6 +464,7 @@ export default function registerHandlers(knex) {
             : await getInvoicesByClientID(id);
         for (const invoice of invoices) {
             fs.stat(invoice.Path, async (err, stat) => {
+                if (err == null) return;
                 console.log(err.code);
                 if (err.code == 'ENOENT') {
                     await knex
