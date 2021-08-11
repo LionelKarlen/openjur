@@ -14,11 +14,19 @@ export function generateID() {
     return Math.round(new Date(Date.now()).valueOf() / 100);
 }
 
+function getLastname(str) {
+    let pieces = str.split(' ');
+    let lastname = pieces[pieces.length - 1];
+    return lastname;
+}
+
 export function sortByName(a, b) {
-    if (a.Name < b.Name) {
+    let aLastname = getLastname(a.Name).toLowerCase();
+    let bLastname = getLastname(b.Name).toLowerCase();
+    if (aLastname < bLastname) {
         return -1;
     }
-    if (a.Name > b.Name) {
+    if (aLastname > bLastname) {
         return 1;
     }
     return 0;
