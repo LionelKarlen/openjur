@@ -102,7 +102,7 @@ export default {
             ipcRenderer.invoke('getClientByID', id).then((data) => {
                 console.log(data);
                 this.client = data;
-                this.addressLines = this.client.Address.split('\n');
+                this.addressLines = this.addressLines ? this.client.Address.split('\n') : '';
             });
         },
         async exportToFile() {

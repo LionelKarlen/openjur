@@ -11,16 +11,23 @@ export default function registerHandlers(knex) {
         return calculateTable(data);
     });
 
-    async function calculateTable(data, override = false) {
+    async function calculateTable(data, override = false, doExport=false) {
         let entries = data;
         for (let i = 0; i < entries.length; i++) {
-            if (entries[i].InvoiceID == null || override) {
                 var user = await getUserByID(entries[i].UserID);
                 var client = await getClientByID(entries[i].ClientID);
-                var amount = await getAmount(client.ID, user.ID);
-                entries[i].Amount = entries[i].Hours * amount;
                 entries[i].User = user.Name;
                 entries[i].Client = client.Name;
+            if (entries[i].InvoiceID == null || override) {
+                var amount = await getAmount(client.ID, user.ID);
+                entries[i].Amount = entries[i].Hours * amount;
+				if (doExport) {
+					await knex('Times').where({
+						ID: `${entries[i].ID}`
+					}).update({
+						Amount: entries[i].Amount
+					})
+				}
             }
         }
         return entries;
@@ -37,7 +44,7 @@ export default function registerHandlers(knex) {
             .andWhere('Date', '>=', data.FromDate)
             .andWhere('Date', '<=', data.ToDate);
         console.log(times);
-        let entries = await calculateTable(times, true);
+        let entries = await calculateTable(times, true, true);
         let total = 0;
         for (let i = 0; i < entries.length; i++) {
             total += entries[i].Amount;
@@ -89,7 +96,7 @@ export default function registerHandlers(knex) {
             .andWhere('Date', '>=', data.FromDate)
             .andWhere('Date', '<=', data.ToDate);
         console.log(times);
-        let entries = await calculateTable(times, true);
+        let entries = await calculateTable(times, true, true);
         let clientTotal = 0;
         for (let i = 0; i < entries.length; i++) {
             clientTotal += entries[i].Amount;
@@ -475,6 +482,7 @@ export default function registerHandlers(knex) {
                         })
                         .update({
                             InvoiceID: null,
+							Amount: null,
                         });
                     await knex
                         .select('*')
