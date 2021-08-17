@@ -1,6 +1,7 @@
 import { ipcMain, shell } from 'electron';
 import Docxtemplater from 'docxtemplater';
 import { formatDate, generateID, sortByName, safeRound } from './utils';
+import { setUncaughtExceptionCaptureCallback } from 'process';
 var pizzip = require('pizzip');
 var fs = require('fs');
 const path = require('path');
@@ -11,23 +12,25 @@ export default function registerHandlers(knex) {
         return calculateTable(data);
     });
 
-    async function calculateTable(data, override = false, doExport=false) {
+    async function calculateTable(data, override = false, doExport = false) {
         let entries = data;
         for (let i = 0; i < entries.length; i++) {
-                var user = await getUserByID(entries[i].UserID);
-                var client = await getClientByID(entries[i].ClientID);
-                entries[i].User = user.Name;
-                entries[i].Client = client.Name;
+            var user = await getUserByID(entries[i].UserID);
+            var client = await getClientByID(entries[i].ClientID);
+            entries[i].User = user.Name;
+            entries[i].Client = client.Name;
             if (entries[i].InvoiceID == null || override) {
                 var amount = await getAmount(client.ID, user.ID);
                 entries[i].Amount = entries[i].Hours * amount;
-				if (doExport) {
-					await knex('Times').where({
-						ID: `${entries[i].ID}`
-					}).update({
-						Amount: entries[i].Amount
-					})
-				}
+                if (doExport) {
+                    await knex('Times')
+                        .where({
+                            ID: `${entries[i].ID}`,
+                        })
+                        .update({
+                            Amount: entries[i].Amount,
+                        });
+                }
             }
         }
         return entries;
@@ -147,14 +150,15 @@ export default function registerHandlers(knex) {
                 ExtID: extID,
             };
             addInvoice(invobj);
-            await knex('Times')
-                .where({
-                    ClientID: `${client.ID}`,
-                    InvoiceID: null,
-                })
-                .update({
-                    InvoiceID: settings.InvoiceID,
-                });
+            for (const time of times) {
+                await knex('Times')
+                    .where({
+                        ID: `${time.ID}`,
+                    })
+                    .update({
+                        InvoiceID: settings.InvoiceID,
+                    });
+            }
             settings.InvoiceID++;
             setSettings(settings);
         }
@@ -482,7 +486,7 @@ export default function registerHandlers(knex) {
                         })
                         .update({
                             InvoiceID: null,
-							Amount: null,
+                            Amount: null,
                         });
                     await knex
                         .select('*')
@@ -499,6 +503,16 @@ export default function registerHandlers(knex) {
 
     ipcMain.handle('openFile', async (event, data) => {
         shell.openPath(data);
+    });
+
+    ipcMain.handle('deleteFile', async (event, data) => {
+        fs.unlink(data, (err) => {
+            if (err) {
+                return false;
+            }
+            return true;
+        });
+        return true;
     });
 
     /// AMOUNTS

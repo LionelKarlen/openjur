@@ -22,6 +22,7 @@
             :arg="this.$route.params.id"
             :user="false"
             :editID="this.client.ID"
+            :key="renderTable"
         />
         <v-btn depressed color="primary" @click="exportToFile">
             Export to File
@@ -30,6 +31,7 @@
             <invoice-card
                 v-for="item in invoices"
                 :key="item.iD"
+                @deleteSuccess="rerenderTable()"
                 :invoice="item"
             />
         </v-row>
@@ -81,6 +83,7 @@ export default {
             path: '',
             invoices: [],
             addressLines: null,
+            renderTable: 0,
         };
     },
     components: {
@@ -102,16 +105,12 @@ export default {
             ipcRenderer.invoke('getClientByID', id).then((data) => {
                 console.log(data);
                 this.client = data;
-                this.addressLines = this.addressLines ? this.client.Address.split('\n') : '';
+                this.addressLines = this.addressLines
+                    ? this.client.Address.split('\n')
+                    : '';
             });
         },
         async exportToFile() {
-            // this.path = await ipcRenderer.invoke(
-            //     'exportToFile',
-            //     this.$route.params.id
-            // );
-            // this.succSnackbar = true;
-            // await this.getData();
             this.$router.push(`/invoice/${this.$route.params.id}`);
         },
         openEditDialog(item) {
@@ -138,6 +137,12 @@ export default {
                     console.log(data);
                     this.invoices = data;
                 });
+        },
+        async rerenderTable() {
+            console.log('rerender');
+            this.invoices = [];
+            await this.getInvoices();
+            this.renderTable++;
         },
     },
 };
