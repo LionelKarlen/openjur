@@ -20,6 +20,7 @@
             :arg="this.$route.params.id"
             :user="true"
             :editID="this.user.ID"
+            :key="renderTable"
         />
         <v-btn depressed color="primary" @click="exportToFile"> Export </v-btn>
         <!-- <v-btn depressed color="primary" @click="openFolder"> Open Folder</v-btn> -->
@@ -46,6 +47,7 @@
                 v-for="item in invoices"
                 :key="item.iD"
                 :invoice="item"
+                @deleteSuccess="rerenderTable()"
             />
         </v-row>
     </div>
@@ -70,6 +72,7 @@ export default {
             deleteDialog: false,
             snackbar: false,
             invoices: [],
+            renderTable: 0,
         };
     },
     components: {
@@ -81,6 +84,7 @@ export default {
         InvoiceCard,
     },
     async mounted() {
+        await this.getInvoices();
         await this.getData();
     },
     methods: {
@@ -90,7 +94,14 @@ export default {
                 console.log(data);
                 this.user = data;
             });
-            this.invoices = await ipcRenderer.invoke('getInvoicesByUserID', id);
+        },
+        async getInvoices() {
+            await ipcRenderer
+                .invoke('getInvoicesByUserID', this.$route.params.id)
+                .then((data) => {
+                    console.log(data);
+                    this.invoices = data;
+                });
         },
         openEditDialog(item) {
             this.editedItem = this.user;
@@ -111,6 +122,12 @@ export default {
         },
         exportToFile() {
             this.$router.push(`/wage/${this.$route.params.id}`);
+        },
+        async rerenderTable() {
+            console.log('rerender');
+            await this.getInvoices();
+            this.renderTable++;
+            await this.getInvoices();
         },
     },
 };

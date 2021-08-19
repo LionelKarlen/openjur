@@ -88,7 +88,6 @@ export default {
     },
     components: {
         TimesheetTable,
-        // EditDialog,
         DeleteDialog,
         FailedDeleteSnackbar,
         SuccessWriteSnackbar,
@@ -131,7 +130,7 @@ export default {
             this.getData();
         },
         async getInvoices() {
-            ipcRenderer
+            await ipcRenderer
                 .invoke('getInvoicesByClientID', this.$route.params.id)
                 .then((data) => {
                     console.log(data);
@@ -140,9 +139,9 @@ export default {
         },
         async rerenderTable() {
             console.log('rerender');
-            this.invoices = [];
             await this.getInvoices();
             this.renderTable++;
+            await this.getInvoices();
         },
     },
 };

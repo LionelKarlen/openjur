@@ -86,6 +86,7 @@ export default function registerHandlers(knex) {
             settings.InvoiceID++;
             setSettings(settings);
         }
+        shell.openPath(p);
     });
 
     ipcMain.handle('exportClientToFile', async (event, data) => {
