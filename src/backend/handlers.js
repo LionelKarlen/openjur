@@ -81,6 +81,7 @@ export default function registerHandlers(knex) {
                 Path: p,
                 Date: date,
                 ExtID: extID,
+                Amount: total,
             };
             addInvoice(invobj);
             settings.InvoiceID++;
@@ -119,6 +120,7 @@ export default function registerHandlers(knex) {
         ).getFullYear()}${settings.InvoiceID.toString()}`;
         let subTotal = clientTotal + chargeTotal;
         let mwstTotal = safeRound(subTotal * (settings.MWST / 100), 1);
+        let total = subTotal + mwstTotal;
         let obj = {
             fromDate: formatDate(data.FromDate),
             toDate: formatDate(data.ToDate),
@@ -130,7 +132,7 @@ export default function registerHandlers(knex) {
             mwst: `${settings.MWST}%`,
             subTotal: subTotal.toFixed(2),
             mwstTotal: mwstTotal.toFixed(2),
-            total: (subTotal + mwstTotal).toFixed(2),
+            total: total.toFixed(2),
             clientTotal: clientTotal.toFixed(2),
             chargeTotal: chargeTotal.toFixed(2),
             invoiceID: settings.InvoiceID,
@@ -149,6 +151,7 @@ export default function registerHandlers(knex) {
                 Path: p,
                 Date: date,
                 ExtID: extID,
+                Amount: total,
             };
             addInvoice(invobj);
             for (const time of times) {
@@ -442,6 +445,17 @@ export default function registerHandlers(knex) {
     });
 
     /// INVOICES
+    ipcMain.handle('getInvoiceByID', async (event, data) => {
+        let da = await knex
+            .select('*')
+            .from('Invoices')
+            .where({
+                ID: `${data}`,
+            });
+        console.log(da);
+        return da[0];
+    });
+
     ipcMain.handle('getInvoicesByClientID', async (event, data) => {
         await validateInvoices(data);
         return await getInvoicesByClientID(data);
