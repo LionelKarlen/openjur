@@ -20,8 +20,10 @@ export default function registerHandlers(knex) {
             entries[i].User = user.Name;
             entries[i].Client = client.Name;
             if (entries[i].InvoiceID == null || override) {
-                var amount = await getAmount(client.ID, user.ID);
-                entries[i].Amount = entries[i].Hours * amount;
+                if (entries[i].IsFix == 0) {
+                    var amount = await getAmount(client.ID, user.ID);
+                    entries[i].Amount = entries[i].Hours * amount;
+                }
                 if (doExport) {
                     await knex('Times')
                         .where({
@@ -498,10 +500,19 @@ export default function registerHandlers(knex) {
                         .from('Times')
                         .where({
                             InvoiceID: invoice.ID,
+                            IsFix: 0,
+                        })
+                        .update({
+                            Amount: null,
+                        });
+                    await knex
+                        .select('*')
+                        .from('Times')
+                        .where({
+                            InvoiceID: invoice.ID,
                         })
                         .update({
                             InvoiceID: null,
-                            Amount: null,
                         });
                     await knex
                         .select('*')
