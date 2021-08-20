@@ -21,7 +21,7 @@
                             .length > 0
                             ? `${
                                   groups.filter((o) => o.ID === group)[0].ExtID
-                              } - ${
+                              } - CHF ${
                                   groups.filter((o) => o.ID === group)[0].Amount
                               }`
                             : ''
