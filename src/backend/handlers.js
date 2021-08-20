@@ -1,6 +1,7 @@
 import { ipcMain, shell } from 'electron';
 import Docxtemplater from 'docxtemplater';
 import { formatDate, generateID, sortByName, safeRound } from './utils';
+import { setUncaughtExceptionCaptureCallback } from 'process';
 var pizzip = require('pizzip');
 var fs = require('fs');
 const path = require('path');
@@ -11,16 +12,27 @@ export default function registerHandlers(knex) {
         return calculateTable(data);
     });
 
-    async function calculateTable(data, override = false) {
+    async function calculateTable(data, override = false, doExport = false) {
         let entries = data;
         for (let i = 0; i < entries.length; i++) {
+            var user = await getUserByID(entries[i].UserID);
+            var client = await getClientByID(entries[i].ClientID);
+            entries[i].User = user.Name;
+            entries[i].Client = client.Name;
             if (entries[i].InvoiceID == null || override) {
-                var user = await getUserByID(entries[i].UserID);
-                var client = await getClientByID(entries[i].ClientID);
-                var amount = await getAmount(client.ID, user.ID);
-                entries[i].Amount = entries[i].Hours * amount;
-                entries[i].User = user.Name;
-                entries[i].Client = client.Name;
+                if (entries[i].IsFix == 0) {
+                    var amount = await getAmount(client.ID, user.ID);
+                    entries[i].Amount = entries[i].Hours * amount;
+                }
+                if (doExport) {
+                    await knex('Times')
+                        .where({
+                            ID: `${entries[i].ID}`,
+                        })
+                        .update({
+                            Amount: entries[i].Amount,
+                        });
+                }
             }
         }
         return entries;
@@ -37,7 +49,7 @@ export default function registerHandlers(knex) {
             .andWhere('Date', '>=', data.FromDate)
             .andWhere('Date', '<=', data.ToDate);
         console.log(times);
-        let entries = await calculateTable(times, true);
+        let entries = await calculateTable(times, true, true);
         let total = 0;
         for (let i = 0; i < entries.length; i++) {
             total += entries[i].Amount;
@@ -71,11 +83,13 @@ export default function registerHandlers(knex) {
                 Path: p,
                 Date: date,
                 ExtID: extID,
+                Amount: total,
             };
             addInvoice(invobj);
             settings.InvoiceID++;
             setSettings(settings);
         }
+        shell.openPath(p);
     });
 
     ipcMain.handle('exportClientToFile', async (event, data) => {
@@ -89,7 +103,7 @@ export default function registerHandlers(knex) {
             .andWhere('Date', '>=', data.FromDate)
             .andWhere('Date', '<=', data.ToDate);
         console.log(times);
-        let entries = await calculateTable(times, true);
+        let entries = await calculateTable(times, true, true);
         let clientTotal = 0;
         for (let i = 0; i < entries.length; i++) {
             clientTotal += entries[i].Amount;
@@ -108,6 +122,7 @@ export default function registerHandlers(knex) {
         ).getFullYear()}${settings.InvoiceID.toString()}`;
         let subTotal = clientTotal + chargeTotal;
         let mwstTotal = safeRound(subTotal * (settings.MWST / 100), 1);
+        let total = subTotal + mwstTotal;
         let obj = {
             fromDate: formatDate(data.FromDate),
             toDate: formatDate(data.ToDate),
@@ -119,7 +134,7 @@ export default function registerHandlers(knex) {
             mwst: `${settings.MWST}%`,
             subTotal: subTotal.toFixed(2),
             mwstTotal: mwstTotal.toFixed(2),
-            total: (subTotal + mwstTotal).toFixed(2),
+            total: total.toFixed(2),
             clientTotal: clientTotal.toFixed(2),
             chargeTotal: chargeTotal.toFixed(2),
             invoiceID: settings.InvoiceID,
@@ -138,16 +153,18 @@ export default function registerHandlers(knex) {
                 Path: p,
                 Date: date,
                 ExtID: extID,
+                Amount: total,
             };
             addInvoice(invobj);
-            await knex('Times')
-                .where({
-                    ClientID: `${client.ID}`,
-                    InvoiceID: null,
-                })
-                .update({
-                    InvoiceID: settings.InvoiceID,
-                });
+            for (const time of times) {
+                await knex('Times')
+                    .where({
+                        ID: `${time.ID}`,
+                    })
+                    .update({
+                        InvoiceID: settings.InvoiceID,
+                    });
+            }
             settings.InvoiceID++;
             setSettings(settings);
         }
@@ -430,6 +447,17 @@ export default function registerHandlers(knex) {
     });
 
     /// INVOICES
+    ipcMain.handle('getInvoiceByID', async (event, data) => {
+        let da = await knex
+            .select('*')
+            .from('Invoices')
+            .where({
+                ID: `${data}`,
+            });
+        console.log(da);
+        return da[0];
+    });
+
     ipcMain.handle('getInvoicesByClientID', async (event, data) => {
         await validateInvoices(data);
         return await getInvoicesByClientID(data);
@@ -472,6 +500,16 @@ export default function registerHandlers(knex) {
                         .from('Times')
                         .where({
                             InvoiceID: invoice.ID,
+                            IsFix: 0,
+                        })
+                        .update({
+                            Amount: null,
+                        });
+                    await knex
+                        .select('*')
+                        .from('Times')
+                        .where({
+                            InvoiceID: invoice.ID,
                         })
                         .update({
                             InvoiceID: null,
@@ -491,6 +529,16 @@ export default function registerHandlers(knex) {
 
     ipcMain.handle('openFile', async (event, data) => {
         shell.openPath(data);
+    });
+
+    ipcMain.handle('deleteFile', async (event, data) => {
+        fs.unlink(data, (err) => {
+            if (err) {
+                return false;
+            }
+            return true;
+        });
+        return true;
     });
 
     /// AMOUNTS

@@ -7,85 +7,102 @@
                 }}</span>
             </v-card-title>
 
-            <v-card-text>
-                <v-form>
-                    <v-container>
-                        <v-row>
-                            <v-col>
-                                <v-menu
-                                    ref="menu"
-                                    v-model="menu"
-                                    :close-on-content-click="false"
-                                    :return-value.sync="picker"
-                                    transition="scale-transition"
-                                    offset-y
-                                    min-width="290px"
-                                >
-                                    <template v-slot:activator="{ on, attrs }">
+            <v-tabs fixed-tabs v-model="tab">
+                <v-tab> Hourly </v-tab>
+                <v-tab> Fixed </v-tab>
+                <v-tab-item v-for="i in 2" :key="i">
+                    <v-card-text>
+                        <v-form>
+                            <v-container>
+                                <v-row>
+                                    <v-col>
+                                        <v-menu
+                                            ref="menu"
+                                            v-model="menu"
+                                            :close-on-content-click="false"
+                                            :return-value.sync="picker"
+                                            transition="scale-transition"
+                                            offset-y
+                                            min-width="290px"
+                                        >
+                                            <template
+                                                v-slot:activator="{ on, attrs }"
+                                            >
+                                                <v-text-field
+                                                    :value="
+                                                        pickerFormat(picker)
+                                                    "
+                                                    label="Date"
+                                                    prepend-icon="mdi-calendar"
+                                                    readonly
+                                                    v-bind="attrs"
+                                                    v-on="on"
+                                                ></v-text-field>
+                                            </template>
+                                            <v-date-picker
+                                                v-model="picker"
+                                                no-title
+                                                scrollable
+                                            >
+                                                <v-spacer></v-spacer>
+                                                <v-btn
+                                                    text
+                                                    color="primary"
+                                                    @click="menu = false"
+                                                    >Cancel</v-btn
+                                                >
+                                                <v-btn
+                                                    text
+                                                    color="primary"
+                                                    @click="
+                                                        $refs.menu.save(picker)
+                                                    "
+                                                    >OK</v-btn
+                                                >
+                                            </v-date-picker>
+                                        </v-menu>
+                                        <v-combobox
+                                            v-model="text"
+                                            :items="textPropose"
+                                            label="Text"
+                                        >
+                                        </v-combobox>
+                                        <v-select
+                                            v-model="client"
+                                            :items="clients"
+                                            item-text="Name"
+                                            item-value="ID"
+                                            label="Client"
+                                        >
+                                        </v-select>
+                                        <v-select
+                                            v-model="user"
+                                            :items="users"
+                                            item-text="Name"
+                                            item-value="ID"
+                                            label="User"
+                                        >
+                                        </v-select>
                                         <v-text-field
-                                            :value="pickerFormat(picker)"
-                                            label="Date"
-                                            prepend-icon="mdi-calendar"
-                                            readonly
-                                            v-bind="attrs"
-                                            v-on="on"
+                                            v-if="i == 1"
+                                            label="Hours"
+                                            v-model="hours"
+                                            suffix="Hours"
                                         ></v-text-field>
-                                    </template>
-                                    <v-date-picker
-                                        v-model="picker"
-                                        no-title
-                                        scrollable
-                                    >
-                                        <v-spacer></v-spacer>
-                                        <v-btn
-                                            text
-                                            color="primary"
-                                            @click="menu = false"
-                                            >Cancel</v-btn
+                                        <v-text-field
+                                            v-else
+                                            label="Amount"
+                                            v-model="amount"
+                                            suffix="CHF"
                                         >
-                                        <v-btn
-                                            text
-                                            color="primary"
-                                            @click="$refs.menu.save(picker)"
-                                            >OK</v-btn
-                                        >
-                                    </v-date-picker>
-                                </v-menu>
-                                <!-- </v-col>
-                            <v-col> -->
-                                <v-combobox
-                                    v-model="text"
-                                    :items="textPropose"
-                                    label="Text"
-                                >
-                                </v-combobox>
-                                <v-select
-                                    v-model="client"
-                                    :items="clients"
-                                    item-text="Name"
-                                    item-value="ID"
-                                    label="Client"
-                                >
-                                </v-select>
-                                <v-select
-                                    v-model="user"
-                                    :items="users"
-                                    item-text="Name"
-                                    item-value="ID"
-                                    label="User"
-                                >
-                                </v-select>
-                                <v-text-field
-                                    label="Hours"
-                                    v-model="hours"
-                                    suffix="Hours"
-                                ></v-text-field>
-                            </v-col>
-                        </v-row>
-                    </v-container>
-                </v-form>
-            </v-card-text>
-
+                                        </v-text-field>
+                                    </v-col>
+                                </v-row>
+                            </v-container>
+                        </v-form>
+                    </v-card-text>
+                </v-tab-item>
+            </v-tabs>
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue darken-1" text @click="close">
@@ -119,6 +136,8 @@ export default {
             textPropose: [],
             hours: 0,
             menu: false,
+            tab: null,
+            amount: null,
         };
     },
     async mounted() {
@@ -127,6 +146,7 @@ export default {
             settings.Suggestions.length > 0
                 ? settings.Suggestions.split('%')
                 : [];
+        console.log(this.tab);
     },
     methods: {
         close() {
@@ -134,6 +154,7 @@ export default {
         },
         async save() {
             console.log(this.editedItem);
+            console.log(this.tab);
             let obj = {
                 Date: new Date(this.picker).getTime() / 1000,
                 ClientID: this.client,
@@ -141,7 +162,11 @@ export default {
                 Text: this.text,
                 Hours: Number(this.hours),
                 ID: this.editedItem.ID,
+                IsFix: this.tab,
             };
+            if (this.tab == 1) {
+                obj.Amount = Number(this.amount);
+            }
             console.log(obj);
             if (this.isEdit) {
                 await ipcRenderer.invoke('setTimeByID', obj);

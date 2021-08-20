@@ -18,7 +18,7 @@
         ></v-file-input>
         <v-divider />
         <h2>Common Tasks</h2>
-        <v-form v-model="taskValid">
+        <v-form v-model="taskValid" @submit.prevent="addTaskEntry()">
             <v-row class="pl-4" align="center" justify="center">
                 <v-text-field
                     v-model="taskModel"
@@ -29,7 +29,7 @@
                 <v-btn
                     text
                     color="primary"
-                    @click="addTaskEntry()"
+                    type="submit"
                     :disabled="!taskValid"
                 >
                     ADD
@@ -57,7 +57,7 @@
 
         <v-divider />
         <h2>Common Extra Charges</h2>
-        <v-form v-model="chargeValid">
+        <v-form v-model="chargeValid" @submit.prevent="addChargeEntry">
             <v-row class="pl-4" align="center" justify="center">
                 <v-text-field
                     v-model="chargeModel"
@@ -68,7 +68,7 @@
                 <v-btn
                     text
                     color="primary"
-                    @click="addChargeEntry()"
+                    type="submit"
                     :disabled="!chargeValid"
                 >
                     ADD
