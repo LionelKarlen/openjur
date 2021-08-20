@@ -18,6 +18,10 @@ export function safeRound(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
 
+export function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
 function getLastname(str) {
     let pieces = str.split(' ');
     let lastname = pieces[pieces.length - 1];

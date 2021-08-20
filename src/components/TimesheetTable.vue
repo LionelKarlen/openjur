@@ -16,7 +16,16 @@
                     <v-icon @click="toggle" :ref="group" v-if="group !== ''">{{
                         !isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up'
                     }}</v-icon>
-                    {{ group }}
+                    {{
+                        groups.filter((o) => (o ? o.ID === group : false))
+                            .length > 0
+                            ? `${
+                                  groups.filter((o) => o.ID === group)[0].ExtID
+                              } - CHF ${
+                                  groups.filter((o) => o.ID === group)[0].Amount
+                              }`
+                            : ''
+                    }}
                 </th>
             </template>
             <template v-slot:[`item.actions`]="{ item }">
@@ -50,7 +59,7 @@
 import DeleteDialog from './DeleteDialog.vue';
 import EditEntryDialog from './EditEntryDialog.vue';
 const { ipcRenderer } = require('electron');
-import { formatDate } from '../backend/utils';
+import { formatDate, onlyUnique } from '../backend/utils';
 import Vue from 'vue';
 export default {
     components: { EditEntryDialog, DeleteDialog },
@@ -135,6 +144,7 @@ export default {
                 { text: 'Actions', value: 'actions', sortable: false },
             ],
             deleteDialog: false,
+            groups: [],
         };
     },
     async mounted() {
@@ -144,9 +154,26 @@ export default {
         async getData() {
             ipcRenderer.invoke(this.invoke, this.arg).then(async (data) => {
                 let entries = await ipcRenderer.invoke('calculateTable', data);
+                let tmpGroups = [];
                 for (var entry of entries) {
                     entry.formattedDate = formatDate(entry.Date);
+                    tmpGroups.push(entry.InvoiceID);
                 }
+                let uGroups = tmpGroups.filter(onlyUnique);
+                let lGroups = [];
+                for (var group of uGroups) {
+                    if (group != null) {
+                        let temp = await ipcRenderer.invoke(
+                            'getInvoiceByID',
+                            group
+                        );
+                        console.log(temp);
+                        lGroups.push(temp);
+                    }
+                }
+                console.log(lGroups);
+                this.groups = lGroups;
+                console.log(this.groups);
                 this.entries = entries;
                 console.log(this.entries);
             });
