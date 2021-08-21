@@ -2,6 +2,7 @@ import { ipcMain, shell } from 'electron';
 import Docxtemplater from 'docxtemplater';
 import { formatDate, generateID, sortByName, safeRound } from './utils';
 import { setUncaughtExceptionCaptureCallback } from 'process';
+import SwissQRBill from 'swissqrbill';
 var pizzip = require('pizzip');
 var fs = require('fs');
 const path = require('path');
@@ -139,18 +140,41 @@ export default function registerHandlers(knex) {
             chargeTotal: chargeTotal.toFixed(2),
             invoiceID: settings.InvoiceID,
         };
+        let addressLines = client.Address
+            ? client.Address.split('\n')
+            : ['', ''];
+
+        let qrData = {
+            currency: 'CHF',
+            amount: total,
+            creditor: {
+                name: 'Test',
+                address: 'No address specified',
+                zip: 8142,
+                city: 'Zürich',
+                account: 'CH93 0076 2011 6238 5295 7',
+                country: 'CH',
+            },
+            debtor: {
+                name: client.Name,
+                address: addressLines[0],
+                zip: Number(addressLines[1].split(' ')[0]),
+                city: addressLines[1].split(' ').slice(1).toString(),
+                country: 'CH',
+            },
+        };
         console.log(obj);
         let p = `${path.join(
             path.dirname(settings.ClientTemplateFile),
             'export',
             extID
-        )}.docx`;
-        let success = writeToFile(obj, settings, p, false);
+        )}`;
+        let success = writeToFile(obj, settings, p, false, qrData);
         if (success) {
             let invobj = {
                 ID: settings.InvoiceID,
                 ClientID: client.ID,
-                Path: p,
+                Path: `${p}.docx`,
                 Date: date,
                 ExtID: extID,
                 Amount: total,
@@ -168,16 +192,17 @@ export default function registerHandlers(knex) {
             settings.InvoiceID++;
             setSettings(settings);
         }
-        shell.openPath(p);
+        shell.openPath(`${p}.docx`);
+        shell.openPath(`${p}.pdf`);
         return success;
     });
 
-    function writeToFile(params, settings, p, isUser = false) {
-        let path = isUser
+    function writeToFile(params, settings, p, isUser = false, qrData) {
+        let templatePath = isUser
             ? settings.UserTemplateFile
             : settings.ClientTemplateFile;
-        console.log(path);
-        var content = fs.readFileSync(path, 'binary');
+        console.log(templatePath);
+        var content = fs.readFileSync(templatePath, 'binary');
         var zip = new pizzip(content);
         var doc;
         try {
@@ -197,7 +222,10 @@ export default function registerHandlers(knex) {
         var buf = doc.getZip().generate({
             type: 'nodebuffer',
         });
-        fs.writeFileSync(p, buf);
+        fs.writeFileSync(`${p}.docx`, buf);
+        const pdf = new SwissQRBill.PDF(qrData, `${p}.pdf`, () => {
+            console.log('PDF created');
+        });
         return p;
     }
 
@@ -533,6 +561,12 @@ export default function registerHandlers(knex) {
 
     ipcMain.handle('deleteFile', async (event, data) => {
         fs.unlink(data, (err) => {
+            if (err) {
+                return false;
+            }
+            return true;
+        });
+        fs.unlink(`${data.split('.')[0]}.pdf`, (err) => {
             if (err) {
                 return false;
             }
