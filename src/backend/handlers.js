@@ -557,6 +557,7 @@ export default function registerHandlers(knex) {
 
     ipcMain.handle('openFile', async (event, data) => {
         shell.openPath(data);
+		shell.openPath(`${data.split('.')[0]}.pdf`);
     });
 
     ipcMain.handle('deleteFile', async (event, data) => {
