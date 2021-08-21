@@ -19,6 +19,7 @@
                                 <v-textarea
                                     label="Address"
                                     v-model="address"
+                                    rows="2"
                                 ></v-textarea>
                             </v-col>
                         </v-row>

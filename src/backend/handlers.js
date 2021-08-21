@@ -140,26 +140,29 @@ export default function registerHandlers(knex) {
             chargeTotal: chargeTotal.toFixed(2),
             invoiceID: settings.InvoiceID,
         };
-        let addressLines = client.Address
+        let clientAddressLines = client.Address
             ? client.Address.split('\n')
+            : ['', ''];
+        let userAddressLines = settings.Address
+            ? settings.Address.split('\n')
             : ['', ''];
 
         let qrData = {
             currency: 'CHF',
             amount: total,
             creditor: {
-                name: 'Test',
-                address: 'No address specified',
-                zip: 8142,
-                city: 'Zürich',
-                account: 'CH93 0076 2011 6238 5295 7',
+                name: settings.Name,
+                address: userAddressLines[0],
+                zip: Number(userAddressLines[1].split(' ')[0]),
+                city: userAddressLines[1].split(' ').slice(1).toString(),
+                account: settings.IBAN,
                 country: 'CH',
             },
             debtor: {
                 name: client.Name,
-                address: addressLines[0],
-                zip: Number(addressLines[1].split(' ')[0]),
-                city: addressLines[1].split(' ').slice(1).toString(),
+                address: clientAddressLines[0],
+                zip: Number(clientAddressLines[1].split(' ')[0]),
+                city: clientAddressLines[1].split(' ').slice(1).toString(),
                 country: 'CH',
             },
         };
@@ -557,7 +560,7 @@ export default function registerHandlers(knex) {
 
     ipcMain.handle('openFile', async (event, data) => {
         shell.openPath(data);
-		shell.openPath(`${data.split('.')[0]}.pdf`);
+        shell.openPath(`${data.split('.')[0]}.pdf`);
     });
 
     ipcMain.handle('deleteFile', async (event, data) => {
