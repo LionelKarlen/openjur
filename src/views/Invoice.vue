@@ -327,7 +327,11 @@ export default {
             this.extraCharges.splice(this.extraCharges.indexOf(item), 1);
         },
         close() {
-            this.$router.push(`/client/${this.$route.params.id}`);
+            if (this.isUser) {
+                this.$router.push(`/user/${this.$route.params.id}`);
+            } else {
+                this.$router.push(`/client/${this.$route.params.id}`);
+            }
         },
         saveEditDialog() {
             console.log('save edit Dialog');

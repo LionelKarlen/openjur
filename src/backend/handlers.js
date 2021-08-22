@@ -75,13 +75,13 @@ export default function registerHandlers(knex) {
             path.dirname(settings.ClientTemplateFile),
             'export',
             extID
-        )}.docx`;
+        )}`;
         let success = writeToFile(obj, settings, p, true);
         if (success) {
             let invobj = {
                 ID: settings.InvoiceID,
                 UserID: user.ID,
-                Path: p,
+                Path: `${p}.docx`,
                 Date: date,
                 ExtID: extID,
                 Amount: total,
@@ -226,9 +226,11 @@ export default function registerHandlers(knex) {
             type: 'nodebuffer',
         });
         fs.writeFileSync(`${p}.docx`, buf);
-        const pdf = new SwissQRBill.PDF(qrData, `${p}.pdf`, () => {
-            console.log('PDF created');
-        });
+        if (!isUser) {
+            const pdf = new SwissQRBill.PDF(qrData, `${p}.pdf`, () => {
+                console.log('PDF created');
+            });
+        }
         return p;
     }
 
