@@ -189,6 +189,7 @@ export default {
                 this.picker = new Date(this.editedItem.Date * 1000)
                     .toISOString()
                     .substring(0, 10);
+                this.tab = this.editedItem.IsFix;
             } else {
                 this.user = {};
                 this.client = {};
