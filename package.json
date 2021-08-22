@@ -1,14 +1,14 @@
 {
     "name": "openjur",
     "version": "0.2.2",
-	"author": "Lionel Karlen <lionel.karlen@protonmail.ch>",
+    "author": "Lionel Karlen <lionel.karlen@protonmail.ch>",
     "private": true,
-	"description": "Timesheet management for Lawyers based on sqlite and electron.",
+    "description": "Timesheet management for Lawyers based on sqlite and electron.",
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build",
         "electron:build": "vue-cli-service electron:build --publish never",
-		"electron:build:windows": "vue-cli-service electron:build --publish never --win",
+        "electron:build:windows": "vue-cli-service electron:build --publish never --win",
         "electron:serve": "vue-cli-service electron:serve",
         "postinstall": "electron-builder install-app-deps",
         "postuninstall": "electron-builder install-app-deps",
@@ -21,6 +21,7 @@
         "knex": "^0.95.7",
         "pizzip": "^3.0.6",
         "sqlite3": "^5.0.2",
+        "swissqrbill": "^2.4.0",
         "vue": "^2.6.11",
         "vue-router": "^3.2.0",
         "vuetify": "^2.4.0"

@@ -94,6 +94,23 @@
             </v-list>
         </v-sheet>
         <v-divider />
+
+        <h2>QRCode Data</h2>
+        <v-form @submit.prevent="save">
+            <v-col>
+                <v-text-field label="Name" v-model="name"></v-text-field>
+                <v-textarea
+                    label="Address"
+                    v-model="address"
+                    rows="2"
+                ></v-textarea>
+                <v-text-field
+                    label="Account IBAN"
+                    v-model="iban"
+                ></v-text-field>
+            </v-col>
+        </v-form>
+        <v-divider />
         <v-btn text color="primary" @click="save()" class="mt-5"> SAVE </v-btn>
     </div>
 </template>
@@ -122,6 +139,9 @@ export default {
                 },
                 notnull: (value) => value.length > 0 || 'No empty strings',
             },
+            name: '',
+            address: '',
+            iban: '',
         };
     },
     async mounted() {
@@ -153,6 +173,9 @@ export default {
                 MWST: this.MWST,
                 Suggestions: this.taskList.join('%'),
                 Charges: this.chargeList.join('%'),
+                Name: this.name,
+                Address: this.address,
+                IBAN: this.iban,
             };
             ipcRenderer.invoke('setSettings', obj);
         },
@@ -170,6 +193,9 @@ export default {
                     : [];
             this.chargeList =
                 entries.Charges.length > 0 ? entries.Charges.split('%') : [];
+            this.name = entries.Name;
+            this.address = entries.Address;
+            this.iban = entries.IBAN;
         },
     },
 };

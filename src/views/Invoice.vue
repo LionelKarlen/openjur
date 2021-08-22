@@ -1,5 +1,5 @@
 <template>
-    <v-form>
+    <v-form @submit.prevent="save">
         <v-container>
             <v-row>
                 <v-col>
@@ -213,7 +213,7 @@
         <v-row>
             <v-spacer></v-spacer>
             <v-btn color="blue darken-1" text @click="close"> Cancel </v-btn>
-            <v-btn color="blue darken-1" text @click="save"> Export</v-btn>
+            <v-btn color="blue darken-1" text type="submit"> Export</v-btn>
         </v-row>
     </v-form>
 </template>
@@ -327,7 +327,11 @@ export default {
             this.extraCharges.splice(this.extraCharges.indexOf(item), 1);
         },
         close() {
-            this.$router.push(`/client/${this.$route.params.id}`);
+            if (this.isUser) {
+                this.$router.push(`/user/${this.$route.params.id}`);
+            } else {
+                this.$router.push(`/client/${this.$route.params.id}`);
+            }
         },
         saveEditDialog() {
             console.log('save edit Dialog');
