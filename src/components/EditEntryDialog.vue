@@ -10,7 +10,7 @@
             <v-tabs fixed-tabs v-model="tab">
                 <v-tab> Hourly </v-tab>
                 <v-tab> Fixed </v-tab>
-                <v-tab-item >
+                <v-tab-item>
                     <v-card-text>
                         <v-form @submit.prevent="save">
                             <v-container>
@@ -55,7 +55,9 @@
                                                     text
                                                     color="primary"
                                                     @click="
-														$refs.menu_0.save(picker)
+                                                        $refs.menu_0.save(
+                                                            picker
+                                                        )
                                                     "
                                                     >OK</v-btn
                                                 >
@@ -94,7 +96,7 @@
                         </v-form>
                     </v-card-text>
                 </v-tab-item>
-				<v-tab-item >
+                <v-tab-item>
                     <v-card-text>
                         <v-form @submit.prevent="save">
                             <v-container>
@@ -139,7 +141,9 @@
                                                     text
                                                     color="primary"
                                                     @click="
-														$refs.menu_1.save(picker)	
+                                                        $refs.menu_1.save(
+                                                            picker
+                                                        )
                                                     "
                                                     >OK</v-btn
                                                 >
@@ -213,7 +217,7 @@ export default {
             textPropose: [],
             hours: 0,
             menu_0: false,
-			menu_1: false,
+            menu_1: false,
             tab: null,
             amount: null,
         };
