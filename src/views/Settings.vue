@@ -45,11 +45,16 @@
             <v-list flat>
                 <v-list-item-group v-model="selectedTaskItem" color="primary">
                     <v-list-item v-for="(item, i) in taskList" :key="i">
-                        <v-list-item-content @click="deleteTaskEntry(i)">
+                        <v-list-item-content class="pa-0">
                             <v-list-item-title
                                 v-text="item"
                             ></v-list-item-title>
                         </v-list-item-content>
+                        <v-list-item-action>
+                            <v-btn icon @click="deleteTaskEntry(i)">
+                                <v-icon>mdi-delete</v-icon>
+                            </v-btn>
+                        </v-list-item-action>
                     </v-list-item>
                 </v-list-item-group>
             </v-list>
@@ -84,11 +89,16 @@
             <v-list flat>
                 <v-list-item-group v-model="selectedChargeItem" color="primary">
                     <v-list-item v-for="(item, i) in chargeList" :key="i">
-                        <v-list-item-content @click="deleteChargeEntry(i)">
+                        <v-list-item-content>
                             <v-list-item-title
                                 v-text="item"
                             ></v-list-item-title>
                         </v-list-item-content>
+                        <v-list-item-action>
+                            <v-btn icon @click="deleteChargeEntry(i)">
+                                <v-icon>mdi-delete</v-icon>
+                            </v-btn>
+                        </v-list-item-action>
                     </v-list-item>
                 </v-list-item-group>
             </v-list>
