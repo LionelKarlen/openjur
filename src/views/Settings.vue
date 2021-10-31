@@ -122,6 +122,9 @@
         </v-form>
         <v-divider />
         <v-btn text color="primary" @click="save()" class="mt-5"> SAVE </v-btn>
+        <v-btn text color="primary" @click="openFolder()" class="mt-5">
+            OPEN FOLDER</v-btn
+        >
     </div>
 </template>
 
@@ -188,6 +191,9 @@ export default {
                 IBAN: this.iban,
             };
             ipcRenderer.invoke('setSettings', obj);
+        },
+        async openFolder() {
+            ipcRenderer.invoke('openFolder');
         },
         async getData() {
             let entries = await ipcRenderer.invoke('getSettings');
