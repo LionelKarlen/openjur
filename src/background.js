@@ -19,7 +19,18 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 console.log('STARTING DB');
-let dbpath = !isDevelopment?path.join(process.resourcesPath, 'defaultFiles', 'db.sqlite') : path.join(process.resourcesPath, '..', '..','..','..','src','res','test.sqlite');
+let dbpath = !isDevelopment
+    ? path.join(process.resourcesPath, 'defaultFiles', 'db.sqlite')
+    : path.join(
+          process.resourcesPath,
+          '..',
+          '..',
+          '..',
+          '..',
+          'src',
+          'res',
+          'test.sqlite'
+      );
 console.log(dbpath);
 var knex = require('knex')({
     client: 'sqlite3',
