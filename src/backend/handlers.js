@@ -141,10 +141,10 @@ export default function registerHandlers(knex) {
             invoiceID: settings.InvoiceID,
         };
         let clientAddressLines = client.Address
-            ? client.Address.split('\n')
+            ? [...client.Address.split('\n'), ""]
             : ['', ''];
         let userAddressLines = settings.Address
-            ? settings.Address.split('\n')
+            ? [...settings.Address.split('\n'), ""]
             : ['', ''];
 
         let qrData = {
