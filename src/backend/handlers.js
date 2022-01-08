@@ -21,10 +21,8 @@ export default function registerHandlers(knex) {
             entries[i].User = user.Name;
             entries[i].Client = client.Name;
             if (entries[i].InvoiceID == null || override) {
-                if (entries[i].IsFix == 0) {
-                    var amount = await getAmount(client.ID, user.ID);
-                    entries[i].Amount = entries[i].Hours * amount;
-                }
+                var amount = await getAmount(client.ID, user.ID);
+                entries[i].Amount = entries[i].Hours * amount;
                 if (doExport) {
                     await knex('Times')
                         .where({
@@ -110,9 +108,20 @@ export default function registerHandlers(knex) {
             clientTotal += entries[i].Amount;
             entries[i].Date = formatDate(entries[i].Date);
         }
+        let charges = data.ExtraCharges;
         let chargeTotal = 0;
         for (let i = 0; i < data.ExtraCharges.length; i++) {
             chargeTotal += data.ExtraCharges[i].Amount;
+        }
+        for (let i = 0; i < entries.length; i++) {
+            if (entries[i].FixText != null) {
+                charges.push({
+                    Date: entries[i].Date,
+                    Charge: entries[i].FixText,
+                    Amount: entries[i].FixAmount,
+                });
+                chargeTotal += entries[i].FixAmount;
+            }
         }
         let client = await getClientByID(data.ID);
         let settings = await getSettings();
@@ -129,7 +138,7 @@ export default function registerHandlers(knex) {
             toDate: formatDate(data.ToDate),
             date: formatDate(date),
             entries: entries,
-            extraCharges: data.ExtraCharges,
+            extraCharges: charges,
             clientName: client.Name,
             clientAddress: client.Address,
             mwst: `${settings.MWST}%`,
@@ -310,6 +319,13 @@ export default function registerHandlers(knex) {
 
     ipcMain.handle('getTimes', async (event, data) => {
         let times = await knex.select('*').from('Times');
+        return times;
+    });
+
+    ipcMain.handle('getOpenTimes', async (event, data) => {
+        let times = await knex.select('*').from('Times').where({
+            InvoiceID: null,
+        });
         return times;
     });
 
@@ -533,7 +549,6 @@ export default function registerHandlers(knex) {
                         .from('Times')
                         .where({
                             InvoiceID: invoice.ID,
-                            IsFix: 0,
                         })
                         .update({
                             Amount: null,
@@ -570,18 +585,20 @@ export default function registerHandlers(knex) {
     });
 
     ipcMain.handle('deleteFile', async (event, data) => {
-        fs.unlink(data, (err) => {
+        fs.unlink(data.Path, (err) => {
             if (err) {
                 return false;
             }
             return true;
         });
-        fs.unlink(`${data.split('.')[0]}.pdf`, (err) => {
+        fs.unlink(`${data.Path.split('.')[0]}.pdf`, (err) => {
             if (err) {
                 return false;
             }
             return true;
         });
+        let user = data.UserID == null ? false : true;
+        await validateInvoices(user ? data.UserID : data.ClientID, user);
         return true;
     });
 

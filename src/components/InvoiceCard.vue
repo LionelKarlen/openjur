@@ -53,10 +53,7 @@ export default {
         },
         async deleteInvoice() {
             console.log('called');
-            let success = await ipcRenderer.invoke(
-                'deleteFile',
-                this.invoice.Path
-            );
+            let success = await ipcRenderer.invoke('deleteFile', this.invoice);
             console.log(success);
             if (success == true) {
                 this.$emit('deleteSuccess', {});
