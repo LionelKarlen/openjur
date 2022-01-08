@@ -55,7 +55,7 @@ export default {
             console.log('called');
             let success = await ipcRenderer.invoke(
                 'deleteFile',
-                this.invoice.Path
+                this.invoice
             );
             console.log(success);
             if (success == true) {
