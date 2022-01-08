@@ -322,6 +322,13 @@ export default function registerHandlers(knex) {
         return times;
     });
 
+    ipcMain.handle('getOpenTimes', async (event, data) => {
+        let times = await knex.select('*').from('Times').where({
+            InvoiceID: null,
+        });
+        return times;
+    });
+
     ipcMain.handle('deleteTimeByID', async (event, data) => {
         await knex('Times')
             .where({
@@ -590,8 +597,8 @@ export default function registerHandlers(knex) {
             }
             return true;
         });
-		let user = data.UserID==null?false:true;
-		await validateInvoices(user?data.UserID:data.ClientID, user);
+        let user = data.UserID == null ? false : true;
+        await validateInvoices(user ? data.UserID : data.ClientID, user);
         return true;
     });
 

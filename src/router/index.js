@@ -55,6 +55,14 @@ const routes = [
         },
     },
     {
+        path: '/open',
+        component: TimesheetTable,
+        props: {
+            invoke: 'getOpenTimes',
+            alltimes: true,
+        },
+    },
+    {
         path: '/settings',
         name: 'Settings',
         component: Settings,

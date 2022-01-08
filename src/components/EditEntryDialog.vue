@@ -182,8 +182,8 @@ export default {
                 this.user = this.editedItem.UserID;
                 this.text = this.editedItem.Text;
                 this.hours = this.editedItem.Hours;
-				this.fixText = this.editedItem.FixText;
-				this.fixAmount = this.editedItem.FixAmount;
+                this.fixText = this.editedItem.FixText;
+                this.fixAmount = this.editedItem.FixAmount;
                 this.picker = new Date(this.editedItem.Date * 1000)
                     .toISOString()
                     .substring(0, 10);
