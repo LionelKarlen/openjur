@@ -1,6 +1,6 @@
 {
     "name": "openjur",
-    "version": "0.3.3",
+    "version": "0.3.5",
     "author": "Lionel Karlen <lionel.karlen@protonmail.ch>",
     "private": true,
     "description": "Timesheet management for Lawyers based on sqlite and electron.",
